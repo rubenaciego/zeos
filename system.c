@@ -14,6 +14,8 @@
 #include <zeos_mm.h> /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
 
 
+#include <libc.h>
+
 int (*usr_main)(void) = (void *) (PAG_LOG_INIT_CODE*PAGE_SIZE);
 unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
 unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
@@ -72,7 +74,17 @@ int __attribute__((__section__(".text.main")))
 
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
 
+  printk_color("ZeOS\n", 0x1F);
   printk("Kernel Loaded!    ");
+
+  // test to print a lot of stuff
+  for (int i = 0; i < 1000; ++i)
+  {
+    char buff[256] = {'t','e','s','t'};
+    itoa(i, buff + 4);
+    printk(buff);
+    printc('\n');
+  }
 
 
   /* Initialize hardware data */

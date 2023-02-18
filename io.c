@@ -3,7 +3,7 @@
  */
 
 #include <io.h>
-
+#include <utils.h>
 #include <types.h>
 
 /**************/
@@ -24,23 +24,43 @@ Byte inb (unsigned short port)
   return v;
 }
 
+void newline()
+{
+  x = 0;
+  if (y == NUM_ROWS - 1)
+  {
+    Word *screen = (Word *)0xb8000;
+    copy_data(screen + NUM_COLUMNS, screen, 2 * NUM_COLUMNS * (NUM_ROWS - 1));
+    
+    for (int i = 0; i < NUM_COLUMNS; ++i)
+      screen[(y * NUM_COLUMNS + i)] = 0;
+  }
+  else
+  {
+    ++y;
+  }
+}
+
 void printc(char c)
+{
+  print_color(c, 0x02);
+}
+
+void print_color(char c, Byte color)
 {
      __asm__ __volatile__ ( "movb %0, %%al; outb $0xe9" ::"a"(c)); /* Magic BOCHS debug: writes 'c' to port 0xe9 */
   if (c=='\n')
   {
-    x = 0;
-    y=(y+1)%NUM_ROWS;
+    newline();
   }
   else
   {
-    Word ch = (Word) (c & 0x00FF) | 0x0200;
-	Word *screen = (Word *)0xb8000;
-	screen[(y * NUM_COLUMNS + x)] = ch;
+    Word ch = (Word) (c & 0x00FF) | ((Word)color << 8);
+    Word *screen = (Word *)0xb8000;
+    screen[(y * NUM_COLUMNS + x)] = ch;
     if (++x >= NUM_COLUMNS)
     {
-      x = 0;
-      y=(y+1)%NUM_ROWS;
+      newline();
     }
   }
 }
@@ -62,4 +82,11 @@ void printk(char *string)
   int i;
   for (i = 0; string[i]; i++)
     printc(string[i]);
+}
+
+void printk_color(char *string, Byte color)
+{
+  int i;
+  for (i = 0; string[i]; i++)
+    print_color(string[i], color);
 }
