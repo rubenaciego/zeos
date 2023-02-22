@@ -9,8 +9,8 @@ AS86 = as86 -0 -a
 LD86 = ld86 -0
 
 HOSTCFLAGS = -Wall -Wstrict-prototypes -g
-HOSTCC = gcc
-CC = gcc
+HOSTCC = gcc-11
+CC = gcc-11
 AS = as --32
 LD = ld
 OBJCOPY = objcopy -O binary -R .note -R .comment -S
@@ -40,6 +40,7 @@ LIBZEOS = -L . -l zeos
 #add to USROBJ any object files required to complete the user program
 USROBJ = \
 	libc.o \
+	suma.o \
 	# libjp.a \
 
 all:zeos.bin
@@ -64,6 +65,9 @@ bootsect.s: bootsect.S
 entry.s: entry.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
+suma.s: suma.S $(INCLUDEDIR)/asm.h 
+	$(CPP) $(ASMFLAGS) -o $@ $<
+	
 sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 

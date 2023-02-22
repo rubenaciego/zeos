@@ -4,6 +4,8 @@ char buff[24];
 
 int pid;
 
+int c;
+
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
@@ -11,5 +13,6 @@ int __attribute__ ((__section__(".text.main")))
      /* __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
 
     
+  c = addASM(3, 6);   
   while(1) { }
 }
