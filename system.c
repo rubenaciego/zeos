@@ -77,16 +77,6 @@ int __attribute__((__section__(".text.main")))
   printk_color("ZeOS\n", 0x1F);
   printk("Kernel Loaded!    ");
 
-  // test to print a lot of stuff
-  for (int i = 0; i < 1000; ++i)
-  {
-    char buff[256] = {'t','e','s','t'};
-    itoa(i, buff + 4);
-    printk(buff);
-    printc('\n');
-  }
-
-
   /* Initialize hardware data */
   setGdt(); /* Definicio de la taula de segments de memoria */
   setIdt(); /* Definicio del vector de interrupcions */

@@ -9,17 +9,22 @@
 
 #include <zeos_interrupt.h>
 
+#define KEYBOARD_IDT_ENTRY 33
+#define KEYBOARD_PORT 0x60
+
 Gate idt[IDT_ENTRIES];
 Register    idtR;
+
+extern void keyboard_handler();
 
 char char_map[] =
 {
   '\0','\0','1','2','3','4','5','6',
-  '7','8','9','0','\'','¡','\0','\0',
+  '7','8','9','0','\'','ï¿½','\0','\0',
   'q','w','e','r','t','y','u','i',
   'o','p','`','+','\0','\0','a','s',
-  'd','f','g','h','j','k','l','ñ',
-  '\0','º','\0','ç','z','x','c','v',
+  'd','f','g','h','j','k','l','ï¿½',
+  '\0','ï¿½','\0','ï¿½','z','x','c','v',
   'b','n','m',',','.','-','\0','*',
   '\0','\0','\0','\0','\0','\0','\0','\0',
   '\0','\0','\0','\0','\0','\0','\0','7',
@@ -83,7 +88,22 @@ void setIdt()
   set_handlers();
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
+  setInterruptHandler(KEYBOARD_IDT_ENTRY, keyboard_handler, 0);
 
   set_idt_reg(&idtR);
 }
 
+/* INTERRUPT SERVICE ROUTINES */
+
+void keyboard_routine()
+{
+  printk("hola");
+  unsigned char kbstate = inb(KEYBOARD_PORT);
+  if (kbstate & 0x80) { //Break
+
+  } else { //Make
+    unsigned char scancode = kbstate & 0x7f;
+    unsigned char ch = scancode >= 98 ? 'C' : char_map[scancode];
+    printc_xy(0, 0, ch);
+  }
+}
