@@ -82,10 +82,33 @@ ENTRY(keyboard_handler)
 ENTRY(syscall_handler)
       SAVE_ALL
       cmpl $MAX_SYSCALL, %eax
-      jnb err
+      jnb syscall_err
       call *sys_call_table(,%eax, 4)
-      jmp fin
-err:  movl $-ENOSYS, %eax
-fin:  MODIFY_EAX
+      jmp syscall_end
+syscall_err:
+      movl $-ENOSYS, %eax
+syscall_end:
+      MODIFY_EAX
       RESTORE_ALL
       iret
+
+ENTRY(syscall_handler_sysenter)
+      push $__USER_DS
+      push %ebp
+      pushfl
+      push $__USER_CS
+      push 4(%ebp)
+      SAVE_ALL
+      cmpl $MAX_SYSCALL, %eax
+      jnb sysenter_err
+      call *sys_call_table(,%eax, 4)
+      jmp sysenter_end
+sysenter_err:
+      movl $-ENOSYS, %eax
+sysenter_end: 
+      MODIFY_EAX
+      RESTORE_ALL
+      movl (%esp), %edx
+      movl 12(%esp), %ecx
+      sti
+      sysexit

@@ -26,6 +26,7 @@ SYSOBJ = \
 	interrupt.o \
 	entry.o \
 	sys_call_table.o \
+	msr.o \
 	io.o \
 	sched.o \
 	sys.o \
@@ -40,6 +41,7 @@ LIBZEOS = -L . -l zeos
 #add to USROBJ any object files required to complete the user program
 USROBJ = \
 	libc.o \
+	wrappers.o \
 	# libjp.a \
 
 all:zeos.bin
@@ -65,6 +67,12 @@ entry.s: entry.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
+msr.s: msr.S $(INCLUDEDIR)/asm.h
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
+wrappers.s: wrappers.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 user.o:user.c $(INCLUDEDIR)/libc.h

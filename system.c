@@ -21,6 +21,8 @@ unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
 unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
 unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
 
+void syscall_handler_sysenter();
+
 /************************/
 /** Auxiliar functions **/
 /************************/
@@ -56,6 +58,13 @@ inline void set_seg_regs(Word data_sel, Word stack_sel, DWord esp)
 
 }
 
+void setSysenter()
+{
+  writeMSR(SYSENTER_CS_MSR, __KERNEL_CS);
+  writeMSR(SYSENTER_ESP_MSR, INITIAL_ESP);
+  writeMSR(SYSENTER_EIP_MSR, (QWord)syscall_handler_sysenter); 
+}
+
 /*
  *   Main entry point to ZEOS Operating System
  */
@@ -80,6 +89,7 @@ int __attribute__((__section__(".text.main")))
   /* Initialize hardware data */
   setGdt(); /* Definicio de la taula de segments de memoria */
   setIdt(); /* Definicio del vector de interrupcions */
+  setSysenter(); /* Crides al sistema utilitzant sysenter/sysexit */
   setTSS(); /* Definicio de la TSS */
 
   /* Initialize Memory */
@@ -100,7 +110,7 @@ int __attribute__((__section__(".text.main")))
   copy_data((void *) KERNEL_START + *p_sys_size, (void*)L_USER_START, *p_usr_size);
 
 
-  printk("Entering user mode...");
+  printk("Entering user mode...\n");
 
   enable_int();
   /*
@@ -112,5 +122,3 @@ int __attribute__((__section__(".text.main")))
   /* The execution never arrives to this point */
   return 0;
 }
-
-
