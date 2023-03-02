@@ -20,8 +20,8 @@
 
 int check_fd(int fd, int permissions)
 {
-  if (fd!=1) return -9; /*EBADF*/
-  if (permissions!=ESCRIPTURA) return -13; /*EACCES*/
+  if (fd!=1) return -EBADF;
+  if (permissions!=ESCRIPTURA) return -EACCES;
   return 0;
 }
 
@@ -48,7 +48,7 @@ void sys_exit()
 {  
 }
 
-int sys_write()
+int sys_write(int fd, char* buff, int len)
 {
-  printk("WRITE");
+  return sys_write_console(buff, len);
 }

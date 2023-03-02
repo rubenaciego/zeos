@@ -18,6 +18,12 @@ write_ret:
     popl %ebp
     addl $4, %esp
 
+    cmpl $0, %eax
+    jge write_no_err
+    negl %eax
+    movl %eax, errno
+    movl $-1, %eax
+write_no_err:
     popl %ebx
     popl %ebp
     ret

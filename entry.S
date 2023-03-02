@@ -52,7 +52,7 @@
       movl %edx, %es
 
 #define MODIFY_EAX \
-      movl %eax, 18(%esp)
+      movl %eax, 0x18(%esp)
 
 #define RESTORE_ALL \
       popl %ebx; \

@@ -62,7 +62,7 @@ void setSysenter()
 {
   writeMSR(SYSENTER_CS_MSR, __KERNEL_CS);
   writeMSR(SYSENTER_ESP_MSR, INITIAL_ESP);
-  writeMSR(SYSENTER_EIP_MSR, (QWord)syscall_handler_sysenter); 
+  writeMSR(SYSENTER_EIP_MSR, (DWord)syscall_handler_sysenter); 
 }
 
 /*

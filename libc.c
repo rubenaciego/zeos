@@ -3,7 +3,7 @@
  */
 
 #include <libc.h>
-
+#include <errno.h>
 #include <types.h>
 
 int errno;
@@ -43,3 +43,14 @@ int strlen(char *a)
   return i;
 }
 
+void perror()
+{
+  char* msg;
+  switch (errno)
+  {
+    case ENOSYS: msg = "No syscall\n"; break;
+    default: msg = "Unknow error\n";
+  }
+
+  write(1, msg, strlen(msg));
+}
