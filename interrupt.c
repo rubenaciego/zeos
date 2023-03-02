@@ -12,10 +12,14 @@
 #define KEYBOARD_IDT_ENTRY 33
 #define KEYBOARD_PORT 0x60
 
+#define SYSCALL_IDT_ENTRY 0x80
+
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
-extern void keyboard_handler();
+void keyboard_handler();
+void syscall_handler();
+
 
 char char_map[] =
 {
@@ -89,6 +93,7 @@ void setIdt()
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   setInterruptHandler(KEYBOARD_IDT_ENTRY, keyboard_handler, 0);
+  setTrapHandler(SYSCALL_IDT_ENTRY, syscall_handler, 3);
 
   set_idt_reg(&idtR);
 }
@@ -97,7 +102,6 @@ void setIdt()
 
 void keyboard_routine()
 {
-  printk("hola");
   unsigned char kbstate = inb(KEYBOARD_PORT);
   if (kbstate & 0x80) { //Break
 

@@ -4,6 +4,7 @@
 
 #include <asm.h>
 #include <segment.h>
+#include <errno.h>
 
 /**************************************************/
 /**** Save & Restore ******************************/
@@ -75,5 +76,16 @@ ENTRY(keyboard_handler)
       SAVE_ALL
       EOI
       call keyboard_routine
+      RESTORE_ALL
+      iret
+
+ENTRY(syscall_handler)
+      SAVE_ALL
+      cmpl $MAX_SYSCALL, %eax
+      jnb err
+      call *sys_call_table(,%eax, 4)
+      jmp fin
+err:  movl $-ENOSYS, %eax
+fin:  MODIFY_EAX
       RESTORE_ALL
       iret
