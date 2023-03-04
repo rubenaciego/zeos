@@ -49,4 +49,3 @@ gettime_ret:
 gettime_no_err:
     popl %ebp
     ret
-    

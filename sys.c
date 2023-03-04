@@ -20,7 +20,6 @@
 #include <limits.h>
 
 
-
 #define LECTURA 0
 #define ESCRIPTURA 1
 
