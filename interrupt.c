@@ -9,6 +9,7 @@
 
 #include <zeos_interrupt.h>
 
+#define CLOCK_IDT_ENTRY 32
 #define KEYBOARD_IDT_ENTRY 33
 #define KEYBOARD_PORT 0x60
 
@@ -17,6 +18,7 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
+void clock_handler();
 void keyboard_handler();
 void syscall_handler();
 
@@ -93,6 +95,7 @@ void setIdt()
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   setInterruptHandler(KEYBOARD_IDT_ENTRY, keyboard_handler, 0);
+  setInterruptHandler(CLOCK_IDT_ENTRY, clock_handler, 0);
   setTrapHandler(SYSCALL_IDT_ENTRY, syscall_handler, 3);
 
   set_idt_reg(&idtR);
@@ -110,4 +113,8 @@ void keyboard_routine()
     unsigned char ch = scancode >= 98 ? 'C' : char_map[scancode];
     printc_xy(0, 0, ch);
   }
+}
+
+void clock_routine() {
+  zeos_show_clock();
 }

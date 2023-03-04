@@ -79,6 +79,13 @@ ENTRY(keyboard_handler)
       RESTORE_ALL
       iret
 
+ENTRY(clock_handler)
+      SAVE_ALL
+      EOI
+      call clock_routine
+      RESTORE_ALL
+      iret
+      
 ENTRY(syscall_handler)
       SAVE_ALL
       cmpl $MAX_SYSCALL, %eax
@@ -112,3 +119,4 @@ sysenter_end:
       movl 12(%esp), %ecx
       sti
       sysexit
+
