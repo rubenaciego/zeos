@@ -54,6 +54,7 @@ void perror()
     case EFAULT: msg = "Bad address\n"; break;
     case EFBIG: msg = "File too large\n"; break;
     case ENOSYS: msg = "Function not implemented\n"; break;
+    case EOVERFLOW: msg = "Value too large for defined data type\n"; break;
     default: msg = "Unknown error\n";
   }
 
