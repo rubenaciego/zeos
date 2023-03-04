@@ -48,8 +48,13 @@ void perror()
   char* msg;
   switch (errno)
   {
-    case ENOSYS: msg = "No syscall\n"; break;
-    default: msg = "Unknow error\n";
+    case EBADF: msg = "Bad file descriptor\n"; break;
+    case ENOMEM: msg = "Cannot allocate memory\n"; break;
+    case EACCES: msg = "Permission denied\n"; break;
+    case EFAULT: msg = "Bad address\n"; break;
+    case EFBIG: msg = "File too large\n"; break;
+    case ENOSYS: msg = "Function not implemented\n"; break;
+    default: msg = "Unknown error\n";
   }
 
   write(1, msg, strlen(msg));
