@@ -14,6 +14,7 @@ void itoa(int a, char *b)
   char c;
   
   if (a==0) { b[0]='0'; b[1]=0; return ;}
+  if (a < 0) { b[0]='-'; a=-a; ++b; }
   
   i=0;
   while (a>0)

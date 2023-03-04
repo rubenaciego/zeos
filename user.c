@@ -24,5 +24,8 @@ int __attribute__ ((__section__(".text.main")))
   int res = write(1, "Hello from user!\n", 18);
   if (res == -1) perror();
 
+  itoa(-1, buff);
+  write(1, buff, 10);
+
   while(1) { }
 }
