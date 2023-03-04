@@ -15,6 +15,12 @@
 
 #include <errno.h>
 
+#include <hardware.h>
+
+#include <limits.h>
+
+
+
 #define LECTURA 0
 #define ESCRIPTURA 1
 
@@ -51,4 +57,9 @@ void sys_exit()
 int sys_write(int fd, char* buff, int len)
 {
   return sys_write_console(buff, len);
+}
+
+int sys_gettime() {
+  if (zeos_ticks > INT_MAX) return -EOVERFLOW;
+  return (int) zeos_ticks;
 }
