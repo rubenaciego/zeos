@@ -15,6 +15,11 @@
 
 #include <errno.h>
 
+#include <hardware.h>
+
+#include <limits.h>
+
+
 #define LECTURA 0
 #define ESCRIPTURA 1
 
@@ -61,4 +66,9 @@ int sys_write(int fd, char* buff, int len)
   res = copy_from_user(buff, write_buff, len);
   if (res == -1) return -ENOMEM;
   return sys_write_console(write_buff, len);
+}
+
+int sys_gettime() {
+  if (zeos_ticks > INT_MAX) return -EOVERFLOW;
+  return (int)zeos_ticks;
 }

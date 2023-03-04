@@ -27,3 +27,25 @@ write_no_err:
     popl %ebx
     popl %ebp
     ret
+
+ENTRY(gettime)
+    pushl %ebp
+    movl %esp, %ebp
+    
+    movl $10, %eax
+    pushl $gettime_ret
+    pushl %ebp
+    movl %esp, %ebp
+    sysenter
+gettime_ret:
+    popl %ebp
+    addl $4, %esp
+    
+    cmpl $0, %eax
+    jge gettime_no_err
+    negl %eax
+    movl %eax, errno
+    movl $-1, %eax
+gettime_no_err:
+    popl %ebp
+    ret

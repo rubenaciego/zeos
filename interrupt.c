@@ -17,6 +17,7 @@
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
+QWord zeos_ticks;
 
 void clock_handler();
 void keyboard_handler();
@@ -116,5 +117,6 @@ void keyboard_routine()
 }
 
 void clock_routine() {
+  ++zeos_ticks;
   zeos_show_clock();
 }

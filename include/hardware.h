@@ -38,4 +38,6 @@ void return_gate(Word ds, Word ss, DWord esp, Word cs, DWord eip);
 
 void enable_int(void);
 void delay(void);
+
+extern QWord zeos_ticks;
 #endif  /* __HARDWARE_H__ */
