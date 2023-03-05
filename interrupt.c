@@ -9,6 +9,7 @@
 
 #include <zeos_interrupt.h>
 
+#define PAGE_FAULT_IDT_ENTRY 14
 #define CLOCK_IDT_ENTRY 32
 #define KEYBOARD_IDT_ENTRY 33
 #define KEYBOARD_PORT 0x60
@@ -22,6 +23,8 @@ QWord zeos_ticks;
 void clock_handler();
 void keyboard_handler();
 void syscall_handler();
+void custom_page_fault_handler();
+
 
 
 char char_map[] =
@@ -96,6 +99,7 @@ void setIdt()
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   setInterruptHandler(KEYBOARD_IDT_ENTRY, keyboard_handler, 0);
+  setInterruptHandler(PAGE_FAULT_IDT_ENTRY, custom_page_fault_handler, 0);
   setInterruptHandler(CLOCK_IDT_ENTRY, clock_handler, 0);
   setTrapHandler(SYSCALL_IDT_ENTRY, syscall_handler, 3);
 
@@ -119,4 +123,11 @@ void keyboard_routine()
 void clock_routine() {
   ++zeos_ticks;
   zeos_show_clock();
+}
+
+
+void custom_page_fault_routine(int dir) {
+  char msg[50] = "Process generates a PAGE FAULT exception at EIP: 0xxxxxxxi\n\0";
+  sys_write_console(msg, 50);
+  while (1) {};
 }

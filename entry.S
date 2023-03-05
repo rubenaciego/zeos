@@ -85,6 +85,16 @@ ENTRY(clock_handler)
       call clock_routine
       RESTORE_ALL
       iret
+
+ENTRY(custom_page_fault_handler)
+      SAVE_ALL
+      mov %cr2, %eax
+      push %eax
+      call custom_page_fault_routine
+      EOI
+      RESTORE_ALL
+      addl $4, %esp /* Remove errror code */
+      iret
       
 ENTRY(syscall_handler)
       SAVE_ALL
@@ -119,4 +129,5 @@ sysenter_end:
       movl 12(%esp), %ecx
       sti
       sysexit
+      
 
