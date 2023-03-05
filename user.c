@@ -22,7 +22,7 @@ int __attribute__ ((__section__(".text.main")))
   if (res == -1) perror();
   write(1, buf, strlen(buf));
   
-  char* p = 0;
+  char* p = 0x23;
   *p = 'x';
   
   
