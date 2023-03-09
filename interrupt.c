@@ -116,6 +116,7 @@ void keyboard_routine()
   } else { //Make
     unsigned char scancode = kbstate & 0x7f;
     unsigned char ch = scancode >= 98 ? 'C' : char_map[scancode];
+    if (ch == '\0') ch = 'C';
     printc_xy(0, 0, ch);
   }
 }
