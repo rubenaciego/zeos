@@ -19,6 +19,11 @@ int __attribute__ ((__section__(".text.main")))
   itoa(atime, buff);
   int res = write(1, buff, strlen(buff));
   if (res == -1) perror();
-
+  write(1, buf, strlen(buf));
+  
+  char* p = 0x23;
+  *p = 'x';
+  
+  
   while(1) { }
 }

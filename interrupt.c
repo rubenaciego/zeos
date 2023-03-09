@@ -9,6 +9,7 @@
 
 #include <zeos_interrupt.h>
 
+#define PAGE_FAULT_IDT_ENTRY 14
 #define CLOCK_IDT_ENTRY 32
 #define KEYBOARD_IDT_ENTRY 33
 #define KEYBOARD_PORT 0x60
@@ -22,6 +23,8 @@ QWord zeos_ticks;
 void clock_handler();
 void keyboard_handler();
 void syscall_handler();
+void custom_page_fault_handler();
+
 
 
 char char_map[] =
@@ -96,6 +99,7 @@ void setIdt()
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   setInterruptHandler(KEYBOARD_IDT_ENTRY, keyboard_handler, 0);
+  setInterruptHandler(PAGE_FAULT_IDT_ENTRY, custom_page_fault_handler, 0);
   setInterruptHandler(CLOCK_IDT_ENTRY, clock_handler, 0);
   setTrapHandler(SYSCALL_IDT_ENTRY, syscall_handler, 3);
 
@@ -119,4 +123,33 @@ void keyboard_routine()
 void clock_routine() {
   ++zeos_ticks;
   zeos_show_clock();
+}
+
+char num_to_hex(Byte num) {
+  num &= 0xf;
+  char ans[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+  return ans[num];
+}
+
+void custom_page_fault_routine(int dir, int eip) {
+  char msg[] = "\nProcess generates a PAGE FAULT exception at EIP: 0x";
+  char snum[] = "GGGGGGGG ";
+  for (int i = 7; i >= 0; --i){
+    snum[i] = num_to_hex(eip);
+    eip >>= 4; 
+  }
+  sys_write_console(msg, sizeof(msg)-1);
+  sys_write_console(snum, sizeof(snum)-1);
+  char msg2[] = "by trying to access 0x";
+  for (int i = 7; i >= 0; --i){
+    snum[i] = num_to_hex(dir);
+    dir >>= 4; 
+  }
+  sys_write_console(msg2, sizeof(msg2)-1);
+  snum[8] = '\n';
+  sys_write_console(snum, sizeof(snum));
+  
+  
+  while (1) {};
+  
 }

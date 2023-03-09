@@ -85,6 +85,25 @@ ENTRY(clock_handler)
       call clock_routine
       RESTORE_ALL
       iret
+
+/*
+  As we do not intend to return from this exception, we could avoid saving the
+  registers (omit the SAVE_ALL). With this, we would also not need to copy
+  push %eip to the stack again.
+  We are passing to the function not only the %eip of the instruction that
+  caused the fault but also the attempted access direction
+*/
+ENTRY(custom_page_fault_handler)
+      SAVE_ALL
+      push 0x30(%esp)
+      mov %cr2, %eax
+      push %eax
+      call custom_page_fault_routine
+      addl $8, %esp
+      EOI
+      RESTORE_ALL
+      addl $4, %esp /* Remove errror code */
+      iret
       
 ENTRY(syscall_handler)
       SAVE_ALL
@@ -119,4 +138,5 @@ sysenter_end:
       movl 12(%esp), %ecx
       sti
       sysexit
+      
 
