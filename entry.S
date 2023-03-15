@@ -100,7 +100,6 @@ ENTRY(custom_page_fault_handler)
       push %eax
       call custom_page_fault_routine
       addl $8, %esp
-      EOI
       RESTORE_ALL
       addl $4, %esp /* Remove errror code */
       iret

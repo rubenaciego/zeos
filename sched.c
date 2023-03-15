@@ -9,15 +9,15 @@
 union task_union task[NR_TASKS]
   __attribute__((__section__(".data.task")));
 
-#if 0
+
+struct list_head freequeue;
+struct list_head readyqueue;
+extern struct list_head blocked;
+
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
   return list_entry( l, struct task_struct, list);
 }
-#endif
-
-extern struct list_head blocked;
-
 
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
@@ -63,9 +63,19 @@ void init_task1(void)
 }
 
 
-void init_sched()
+void init_sched(void)
 {
+	INIT_LIST_HEAD(&freequeue);
+	struct list_head* prev = &freequeue;
 
+	for (int i = 0; i < NR_TASKS; ++i)
+	{
+		struct list_head* next = &task[i].task.list;
+		list_add(next, prev);
+		prev = next;
+	}
+
+	INIT_LIST_HEAD(&readyqueue);
 }
 
 struct task_struct* current()

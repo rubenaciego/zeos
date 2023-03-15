@@ -37,7 +37,9 @@ int __attribute__ ((__section__(".text.main")))
   
   char* p = (char *) 0x23;
   //*p = 'x';
-  
+
+  char* msg = "\nHello from user\n";
+  write(1, msg, strlen(msg));
   
   while(1) { }
 }
