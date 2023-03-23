@@ -118,3 +118,9 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
+void inner_task_switch(union task_union*t) {
+	tss.esp0 = &(t->task_struct.stack[KERNEL_STACK_SIZE]);
+	writeMSR(SYSENTER_ESP_MSR, (DWord) &(t->task_struct.stack[KERNEL_STACK_SIZE]));
+	set_cr3()
+
+}

@@ -29,6 +29,7 @@ SYSOBJ = \
 	msr.o \
 	io.o \
 	sched.o \
+	sched_asm.o\
 	sys.o \
 	mm.o \
 	devices.o \
@@ -70,6 +71,9 @@ sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 msr.s: msr.S $(INCLUDEDIR)/asm.h
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
+sched_asm.s: sched_asm.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 wrappers.s: wrappers.S $(INCLUDEDIR)/asm.h
