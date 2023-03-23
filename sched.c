@@ -5,6 +5,7 @@
 #include <sched.h>
 #include <mm.h>
 #include <io.h>
+#include <interrupt.h>
 
 union task_union task[NR_TASKS]
   __attribute__((__section__(".data.task")));
@@ -13,6 +14,8 @@ union task_union task[NR_TASKS]
 struct list_head freequeue;
 struct list_head readyqueue;
 extern struct list_head blocked;
+
+struct task_struct * idle_task;
 
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
@@ -55,11 +58,37 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
+	struct list_head* idle_task_head = list_first( &freequeue);
+	struct task_struct* idle_task_st = list_head_to_task_struct(idle_task_head);
+	list_del(idle_task_head);
 
+	idle_task_st->PID = 0;
+	allocate_DIR(idle_task_st);
+
+	unsigned long* stack = ((union task_union *) idle_task_st)->stack;
+	stack[KERNEL_STACK_SIZE-1] = (unsigned long) cpu_idle;
+	stack[KERNEL_STACK_SIZE-2] = 0;
+	idle_task_st->sys_stack = &stack[KERNEL_STACK_SIZE-2];
+
+	idle_task = idle_task_st;
 }
 
 void init_task1(void)
 {
+	struct list_head* init_task_head = list_first( &freequeue);
+	struct task_struct* init_task_st = list_head_to_task_struct(init_task_head);
+	list_del(init_task_head);
+
+	init_task_st->PID = 1;
+	allocate_DIR(init_task_st);
+	set_user_pages(init_task_st);
+
+	unsigned long* stack = ((union task_union *) init_task_st)->stack;
+
+	tss.esp0 = (DWord) &stack[KERNEL_STACK_SIZE];
+	writeMSR(SYSENTER_ESP_MSR, (DWord) &stack[KERNEL_STACK_SIZE]);
+
+	set_cr3(init_task_st->dir_pages_baseAddr);
 }
 
 
