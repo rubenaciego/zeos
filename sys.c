@@ -29,8 +29,8 @@ char write_buff[WRITE_BUFFER_SIZE];
 
 int check_fd(int fd, int permissions)
 {
-  if (fd!=1) return -EBADF;
-  if (permissions!=ESCRIPTURA) return -EACCES;
+  if (fd != 1) return -EBADF;
+  if (permissions != ESCRIPTURA) return -EACCES;
   return 0;
 }
 
@@ -61,7 +61,7 @@ int sys_write(int fd, char* buff, int len)
 {
   int res = check_fd(fd, ESCRIPTURA);
   if (res < 0) return res;
-  if (buff == NULL) return -EFAULT;
+  if (!access_ok(VERIFY_WRITE, buff, len)) return -EFAULT;
   if (len < 0) return -EFBIG;
 
   int wb = 0;
@@ -77,7 +77,8 @@ int sys_write(int fd, char* buff, int len)
   return wb;
 }
 
-int sys_gettime() {
+int sys_gettime()
+{
   if (zeos_ticks > INT_MAX) return -EOVERFLOW;
   return (int)zeos_ticks;
 }

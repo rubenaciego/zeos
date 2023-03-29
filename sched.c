@@ -15,7 +15,7 @@ struct list_head freequeue;
 struct list_head readyqueue;
 extern struct list_head blocked;
 
-struct task_struct * idle_task;
+struct task_struct* idle_task;
 
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
@@ -58,12 +58,12 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
-	struct list_head* idle_task_head = list_first( &freequeue);
+	struct list_head* idle_task_head = list_first(&freequeue);
 	struct task_struct* idle_task_st = list_head_to_task_struct(idle_task_head);
 	list_del(idle_task_head);
 
 	idle_task_st->PID = 0;
-	allocate_DIR(idle_task_st);
+	//allocate_DIR(idle_task_st);
 
 	unsigned long* stack = ((union task_union *) idle_task_st)->stack;
 	stack[KERNEL_STACK_SIZE-1] = (unsigned long) cpu_idle;
@@ -75,7 +75,7 @@ void init_idle (void)
 
 void init_task1(void)
 {
-	struct list_head* init_task_head = list_first( &freequeue);
+	struct list_head* init_task_head = list_first(&freequeue);
 	struct task_struct* init_task_st = list_head_to_task_struct(init_task_head);
 	list_del(init_task_head);
 
@@ -115,12 +115,31 @@ struct task_struct* current()
   	"movl %%esp, %0"
 	: "=g" (ret_value)
   );
-  return (struct task_struct*)(ret_value&0xfffff000);
+
+  return (struct task_struct*)(ret_value & 0xfffff000);
 }
 
-void inner_task_switch(union task_union*t) {
-	tss.esp0 = &(t->task_struct.stack[KERNEL_STACK_SIZE]);
-	writeMSR(SYSENTER_ESP_MSR, (DWord) &(t->task_struct.stack[KERNEL_STACK_SIZE]));
-	set_cr3()
+void inner_task_switch(union task_union* new)
+{
+	tss.esp0 = &(new->stack[KERNEL_STACK_SIZE]);
+	writeMSR(SYSENTER_ESP_MSR, (DWord) &(new->stack[KERNEL_STACK_SIZE]));
+	set_cr3(new->task.dir_pages_baseAddr);
 
+	__asm__ __volatile__(
+		"movl %%ebp, %0"
+		: "=g" (current()->sys_stack)
+  	);
+
+	__asm__ __volatile__(
+		"movl %0, %%esp"
+		: "=g" (new->task.sys_stack)
+  	);
+
+	__asm__ __volatile__(
+		"popl %ebp"
+  	);
+
+	__asm__ __volatile__(
+		"ret"
+	);
 }
