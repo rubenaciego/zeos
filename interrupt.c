@@ -120,22 +120,24 @@ void keyboard_routine()
     unsigned char ch = scancode >= 98 ? 'C' : char_map[scancode];
     if (ch == '\0') ch = 'C';
     printc_xy(0, 0, ch);
+
+
+    struct task_struct* c = current();
+    static struct task_struct* other;
+
+    char buff[128] = {'P', 'I', 'D', ' ', '=', ' ' };
+    itoa(c->PID, buff + 6);
+    printk(buff);
+    printc('\n');
+
+    if (c != idle_task)
+    {
+      other = c;
+      task_switch(idle_task);
+    }
+    else
+      task_switch(other);
   }
-
-  struct task_struct* c = current();
-  static struct task_struct* other;
-
-  char buff[128] = {'P', 'I', 'D', ' ', '=', ' ' };
-  itoa(c->PID, buff + 6);
-  printk(buff);
-
-  if (c != idle_task)
-  {
-    //other = c;
-    task_switch(idle_task);
-  }
-  else
-    task_switch(other);
 }
 
 void clock_routine() {
