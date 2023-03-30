@@ -71,3 +71,25 @@ getpid_ret:
 getpid_no_err:
     popl %ebp
     ret
+
+ENTRY(fork)
+    pushl %ebp
+    movl %esp, %ebp
+    
+    movl $2, %eax
+    pushl $fork_ret
+    pushl %ebp
+    movl %esp, %ebp
+    sysenter
+fork_ret:
+    popl %ebp
+    addl $4, %esp
+    
+    cmpl $0, %eax
+    jge fork_no_err
+    negl %eax
+    movl %eax, errno
+    movl $-1, %eax
+fork_no_err:
+    popl %ebp
+    ret

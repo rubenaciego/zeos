@@ -47,6 +47,22 @@ int __attribute__ ((__section__(".text.main")))
   write(1, msg2, strlen(msg2));
   write(1, buff, strlen(buff));
   write(1, "\n", 1);
+
+  int pidfork = fork();
+
+  if (pidfork == -1)
+  {
+    char* error = "Fork error (-1)\n";
+    write(1, error, strlen(error));
+  }
+  else
+  {
+    itoa(pidfork, buff);
+    char* forkmsg = "fork returned ";
+    write(1, forkmsg, strlen(forkmsg));
+    write(1, buff, strlen(buff));
+    write(1, "\n", 1);
+  }
   
   while(1) { }
 }
