@@ -49,3 +49,25 @@ gettime_ret:
 gettime_no_err:
     popl %ebp
     ret
+
+ENTRY(getpid)
+    pushl %ebp
+    movl %esp, %ebp
+    
+    movl $20, %eax
+    pushl $getpid_ret
+    pushl %ebp
+    movl %esp, %ebp
+    sysenter
+getpid_ret:
+    popl %ebp
+    addl $4, %esp
+    
+    cmpl $0, %eax
+    jge getpid_no_err
+    negl %eax
+    movl %eax, errno
+    movl $-1, %eax
+getpid_no_err:
+    popl %ebp
+    ret

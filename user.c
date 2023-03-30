@@ -35,11 +35,18 @@ int __attribute__ ((__section__(".text.main")))
   res = write(1, buff, strlen(buff));
   if (res == -1) perror();
   
-  char* p = (char *) 0x23;
+  //char* p = (char *) 0x23;
   //*p = 'x';
 
   char* msg = "\nHello from user\n";
   write(1, msg, strlen(msg));
+
+  int pid = getpid();
+  itoa(pid, buff);
+  char* msg2 = "getpid() = ";
+  write(1, msg2, strlen(msg2));
+  write(1, buff, strlen(buff));
+  write(1, "\n", 1);
   
   while(1) { }
 }
