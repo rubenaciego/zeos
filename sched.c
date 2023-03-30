@@ -17,7 +17,7 @@ extern struct list_head blocked;
 
 struct task_struct* idle_task;
 
-void inner_task_switch_asm(DWord* stack_save, DWord new_esp);
+void inner_task_switch_asm(DWord** stack_save, DWord* new_esp);
 
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
@@ -124,7 +124,7 @@ struct task_struct* current()
 
 void inner_task_switch(union task_union* new)
 {
-	tss.esp0 = &(new->stack[KERNEL_STACK_SIZE]);
+	tss.esp0 = (DWord)&(new->stack[KERNEL_STACK_SIZE]);
 	writeMSR(SYSENTER_ESP_MSR, (DWord) &(new->stack[KERNEL_STACK_SIZE]));
 	set_cr3(get_DIR(&(new->task)));
 	inner_task_switch_asm(&(current()->sys_stack), new->task.sys_stack);

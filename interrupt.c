@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
+#include <devices.h>
 
 #include <libc.h>
 
@@ -133,10 +134,10 @@ void keyboard_routine()
     if (c != idle_task)
     {
       other = c;
-      task_switch(idle_task);
+      task_switch((union task_union*)idle_task);
     }
     else
-      task_switch(other);
+      task_switch((union task_union*)other);
   }
 }
 
