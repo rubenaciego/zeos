@@ -92,30 +92,29 @@ int sys_fork()
     set_ss_pag(new_PT, PAG_LOG_INIT_DATA+pag, data_frames[pag]);
   }
   
-  int tmp_first_page = PH_PAGE(TEMP_ADDRS);
   
   for (pag=0;pag<NUM_PAG_DATA;pag++){
     //temporarily mapping the page
-    set_ss_pag(old_PT, tmp_first_page+pag, data_frames[pag]);
+    set_ss_pag(old_PT, PAG_LOG_INIT_TEMP+pag, data_frames[pag]);
     //copying the data
-    copy_data((void*) (L_USER_START + pag*0x1000),(void*) (TEMP_ADDRS + pag*0x1000), 0x1000);
+    copy_data((void*) (L_USER_START + pag*0x1000),(void*) ((PAG_LOG_INIT_TEMP<<12) + pag*0x1000), 0x1000);
     //deleting the temporal mapping from the page table but not clearing TLB yet
-    del_ss_pag(old_PT, tmp_first_page+pag);
+    del_ss_pag(old_PT, PAG_LOG_INIT_TEMP+pag);
   }
   //clear TLB
   set_cr3(current()->dir_pages_baseAddr);
   
-  new_task_st->PID = ++min_pid; //TODO patch
+  new_task_st->PID = min_pid++; //TODO patch
   
-  new_task_st->sys_stack = (unsigned long *) new_task_st + 0x0fb8;
-  *(new_task_st->sys_stack) = ret_from_fork;
-  *(new_task_st->sys_stack - 1) = 0;
-  new_task_st->sys_stack -= 1;
+  new_task_st->sys_stack = (void *) new_task_st + 0x0fb8;
+  *(new_task_st->sys_stack) = (unsigned long) ret_from_fork;
+  --new_task_st->sys_stack;
+  *(new_task_st->sys_stack) = 0;
   
   list_add(new_task_head, &readyqueue);
   
   list_del(new_task_head);
-  return PID;
+  return new_task_st->PID;
 }
 
 void sys_exit()

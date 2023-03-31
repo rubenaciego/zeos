@@ -9,6 +9,7 @@
 #include <devices.h>
 
 #include <libc.h>
+#include <sched.h>
 
 #include <zeos_interrupt.h>
 
@@ -115,7 +116,6 @@ void keyboard_routine()
 {
   unsigned char kbstate = inb(KEYBOARD_PORT);
   if (kbstate & 0x80) { //Break
-
   } else { //Make
     unsigned char scancode = kbstate & 0x7f;
     unsigned char ch = scancode >= 98 ? 'C' : char_map[scancode];
@@ -131,10 +131,10 @@ void keyboard_routine()
     printk(buff);
     printc('\n');
 
-    if (c != idle_task)
+    if (c != &task[2])
     {
       other = c;
-      task_switch((union task_union*)idle_task);
+      task_switch((union task_union*) &task[2]);
     }
     else
       task_switch((union task_union*)other);
