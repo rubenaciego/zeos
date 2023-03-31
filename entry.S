@@ -138,4 +138,8 @@ sysenter_end:
       sti
       sysexit
       
+ENTRY(ret_from_fork)
+      movl $0, %eax
+      ret
+      
 

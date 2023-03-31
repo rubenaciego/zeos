@@ -19,6 +19,8 @@
 
 #include <limits.h>
 
+#include <sched.h>
+
 
 #define LECTURA 0
 #define ESCRIPTURA 1
@@ -44,12 +46,75 @@ int sys_getpid()
 	return current()->PID;
 }
 
+int min_pid = 2;
+
+int ret_from_fork();
+
 int sys_fork()
 {
   int PID=-1;
-
-  // creates the child process
   
+  if (list_empty(&freequeue)) {
+    return -EAGAIN;
+  }
+
+  struct list_head* new_task_head = list_first(&freequeue);
+  struct task_struct* new_task_st = list_head_to_task_struct(new_task_head);
+  
+  copy_data((union task_union *) current(), (union task_union *) new_task_st, sizeof(union task_union));
+  
+  allocate_DIR(new_task_st);
+  
+  int data_frames[NUM_PAG_DATA];
+  
+  for(int i = 0; i < NUM_PAG_DATA; ++i) {
+    data_frames[i] = alloc_frame();
+    if (data_frames[i] == -1) {
+      return -ENOMEM;
+    }
+  }
+  
+  int pag; 
+  page_table_entry * new_PT =  get_PT(new_task_st);
+  page_table_entry * old_PT =  get_PT(current());
+
+
+  for (pag=0;pag<NUM_PAG_CODE;pag++){
+    new_PT[PAG_LOG_INIT_CODE+pag].entry = 0;
+    new_PT[PAG_LOG_INIT_CODE+pag].bits.pbase_addr = old_PT[PAG_LOG_INIT_CODE+pag].bits.pbase_addr;
+    new_PT[PAG_LOG_INIT_CODE+pag].bits.user = 1;
+    new_PT[PAG_LOG_INIT_CODE+pag].bits.present = 1;
+  }
+  
+  
+  for (pag=0;pag<NUM_PAG_DATA;pag++){
+    new_PT[PAG_LOG_INIT_DATA+pag].entry = 0;
+    set_ss_pag(new_PT, PAG_LOG_INIT_DATA+pag, data_frames[pag]);
+  }
+  
+  int tmp_first_page = PH_PAGE(TEMP_ADDRS);
+  
+  for (pag=0;pag<NUM_PAG_DATA;pag++){
+    //temporarily mapping the page
+    set_ss_pag(old_PT, tmp_first_page+pag, data_frames[pag]);
+    //copying the data
+    copy_data((void*) (L_USER_START + pag*0x1000),(void*) (TEMP_ADDRS + pag*0x1000), 0x1000);
+    //deleting the temporal mapping from the page table but not clearing TLB yet
+    del_ss_pag(old_PT, tmp_first_page+pag);
+  }
+  //clear TLB
+  set_cr3(current()->dir_pages_baseAddr);
+  
+  new_task_st->PID = ++min_pid; //TODO patch
+  
+  new_task_st->sys_stack = (unsigned long *) new_task_st + 0x0fb8;
+  *(new_task_st->sys_stack) = ret_from_fork;
+  *(new_task_st->sys_stack - 1) = 0;
+  new_task_st->sys_stack -= 1;
+  
+  list_add(new_task_head, &readyqueue);
+  
+  list_del(new_task_head);
   return PID;
 }
 

@@ -24,5 +24,7 @@
 
 #define PH_PAGE(x) (x>>12)
 
+#define TEMP_ADDRS	L_USER_START+(NUM_PAG_DATA)*0x1000
+
 #endif
 
