@@ -62,6 +62,14 @@ int __attribute__ ((__section__(".text.main")))
     write(1, forkmsg, strlen(forkmsg));
     write(1, buff, strlen(buff));
     write(1, "\n", 1);
+
+    if (pidfork == 0)
+    {
+      int t0 = gettime();
+
+      while (gettime() - t0 < 10000);
+      exit();
+    }
   }
   
   while(1) { }

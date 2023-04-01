@@ -157,14 +157,16 @@ void schedule()
 	update_sched_data_rr();
 
 	if (needs_sched_rr())
+	{
+		if (current() != idle_task)
+			update_process_state_rr(current(), &readyqueue);
+		
 		sched_next_rr();
+	}
 }
 
 void sched_next_rr()
 {
-	if (current() != idle_task)
-		update_process_state_rr(current(), &readyqueue);
-
 	struct task_struct* t;
 	if (list_empty(&readyqueue)) t = idle_task;
 	else

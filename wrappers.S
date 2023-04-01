@@ -93,3 +93,25 @@ fork_ret:
 fork_no_err:
     popl %ebp
     ret
+
+ENTRY(exit)
+    pushl %ebp
+    movl %esp, %ebp
+    
+    movl $1, %eax
+    pushl $exit_ret
+    pushl %ebp
+    movl %esp, %ebp
+    sysenter
+exit_ret:
+    popl %ebp
+    addl $4, %esp
+    
+    cmpl $0, %eax
+    jge exit_no_err
+    negl %eax
+    movl %eax, errno
+    movl $-1, %eax
+exit_no_err:
+    popl %ebp
+    ret

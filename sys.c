@@ -118,7 +118,24 @@ int sys_fork()
 }
 
 void sys_exit()
-{  
+{
+  struct task_struct* t = current();
+  page_table_entry* pt = get_PT(t);
+
+  for (int pag = 0; pag < NUM_PAG_CODE; ++pag) {
+    int frame = get_frame(pt, PAG_LOG_INIT_CODE + pag);
+    free_frame(frame);
+    del_ss_pag(pt, PAG_LOG_INIT_CODE + pag);
+  }
+  
+  for (int pag = 0; pag < NUM_PAG_DATA; ++pag) {
+    int frame = get_frame(pt, PAG_LOG_INIT_DATA + pag);
+    free_frame(frame);
+    del_ss_pag(pt, PAG_LOG_INIT_DATA + pag);
+  }
+  
+  update_process_state_rr(t, &freequeue);
+  sched_next_rr(); 
 }
 
 int sys_write(int fd, char* buff, int len)
