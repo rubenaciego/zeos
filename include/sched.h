@@ -16,9 +16,10 @@ enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
-  struct list_head list;
-  page_table_entry * dir_pages_baseAddr;
+  int quantum;
+  page_table_entry* dir_pages_baseAddr;
   unsigned long* sys_stack;
+  struct list_head list;
 };
 
 union task_union {
@@ -54,7 +55,11 @@ page_table_entry * get_PT (struct task_struct *t) ;
 
 page_table_entry * get_DIR (struct task_struct *t) ;
 
+int get_quantum(struct task_struct* t);
+void set_quantum(struct task_struct* t, int new_quantum);
+
 /* Headers for the scheduling policy */
+void schedule();
 void sched_next_rr();
 void update_process_state_rr(struct task_struct *t, struct list_head *dest);
 int needs_sched_rr();

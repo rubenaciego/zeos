@@ -84,6 +84,18 @@ void printk(char *string)
     printc(string[i]);
 }
 
+void printk_xy(Byte mx, Byte my, char *string)
+{
+  Byte cx, cy;
+  cx=x;
+  cy=y;
+  x=mx;
+  y=my;
+  printk(string);
+  x=cx;
+  y=cy;
+}
+
 void printk_color(char *string, Byte color)
 {
   int i;
