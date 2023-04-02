@@ -58,8 +58,10 @@ int sys_fork()
 
   struct list_head* new_task_head = list_first(&freequeue);
   struct task_struct* new_task_st = list_head_to_task_struct(new_task_head);
+  //we need to delete here and not after checking that we can indeed fork as
+  //copying the pcb will overwrite the queue head. copying the PCB partially
+  //seems like a worse option than re-adding to the freequeue in case of failure
   list_del(new_task_head);
-  
   copy_data((union task_union *) current(), (union task_union *) new_task_st, sizeof(union task_union));
   
   allocate_DIR(new_task_st);
@@ -70,6 +72,7 @@ int sys_fork()
     data_frames[i] = alloc_frame();
     if (data_frames[i] == -1) {
       for (int j = 0; j < i; ++j) free_frame(j);
+      list_add(new_task_head, &freequeue);
       return -ENOMEM;
     }
   }
