@@ -8,6 +8,7 @@
 #include <interrupt.h>
 
 #include <libc.h>
+#include <stat_funcs.h>
 
 #define DEFAULT_QUANTUM 1000
 

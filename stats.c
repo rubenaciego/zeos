@@ -1,6 +1,6 @@
-#include<stats.h>
-#include<sched.h>
-
+#include <stats.h>
+#include <sched.h>
+#include <utils.h>
 
 void stats_user_to_system() {
     unsigned long current_ticks = get_ticks();
