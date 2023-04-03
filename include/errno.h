@@ -1,6 +1,7 @@
 #ifndef _ERRNO_H
 #define _ERRNO_H
 
+#define ESRCH 3
 #define EBADF 9
 #define	EAGAIN 11
 #define ENOMEM 12

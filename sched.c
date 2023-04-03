@@ -14,6 +14,8 @@
 
 union task_union task[NR_TASKS]
   __attribute__((__section__(".data.task")));
+  
+struct task_struct* task_pids[NR_PIDS] = { 0 };
 
 
 struct list_head freequeue;
@@ -74,6 +76,7 @@ void init_idle (void)
 	list_del(idle_task_head);
 
 	idle_task_st->PID = 0;
+	task_pids[0] = idle_task_st;
 	//Idle should try to give up the processor at every tick:
 	idle_task_st->quantum = 1;
 	//allocate_DIR(idle_task_st);
@@ -93,6 +96,7 @@ void init_task1(void)
 	list_del(init_task_head);
 
 	init_task_st->PID = 1;
+	task_pids[1] = init_task_st;
 	init_task_st->quantum = DEFAULT_QUANTUM;
 	allocate_DIR(init_task_st);
 	set_user_pages(init_task_st);

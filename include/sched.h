@@ -12,8 +12,12 @@
 
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
+#define NR_PIDS 50
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
+
+extern int sched_ticks;
+extern struct task_struct* task_pids[NR_PIDS];
 
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */

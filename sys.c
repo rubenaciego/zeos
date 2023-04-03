@@ -21,6 +21,8 @@
 
 #include <sched.h>
 
+#include <stat_funcs.h>
+
 
 #define LECTURA 0
 #define ESCRIPTURA 1
@@ -46,7 +48,14 @@ int sys_getpid()
 	return current()->PID;
 }
 
-int min_pid = 2;
+int get_PID() {
+  static int PID = 0;
+  while(task_pids[PID] != 0) {
+    ++PID;
+    if (PID == NR_PIDS) PID = 0;
+  }
+  return PID;
+}
 
 int ret_from_fork();
 
@@ -106,7 +115,10 @@ int sys_fork()
   //clear TLB
   set_cr3(current()->dir_pages_baseAddr);
   
-  new_task_st->PID = min_pid++; //TODO patch
+  int PID = get_PID();
+  new_task_st->PID = PID;
+  task_pids[PID] = new_task_st;
+  clean_stats(new_task_st);
   
   // task_switch will pop ebp and ret
   // syscall_handler + call -> push 17*4 bytes onto the stack
@@ -123,6 +135,8 @@ int sys_fork()
 void sys_exit()
 {
   struct task_struct* t = current();
+  int PID = current()->PID;
+  task_pids[PID] = 0;
   page_table_entry* pt = get_PT(t);
 
   for (int pag = 0; pag < NUM_PAG_CODE; ++pag) {
@@ -166,3 +180,22 @@ int sys_gettime()
   if (zeos_ticks > INT_MAX) return -EOVERFLOW;
   return (int)zeos_ticks;
 }
+
+int sys_get_stats(int pid, struct stats *st) {
+  if(!access_ok(VERIFY_WRITE, st, sizeof(struct stats))) {
+    return -EFAULT;
+  }
+  
+  if (pid >= NR_PIDS || task_pids[pid] == 0) return -ESRCH;
+  
+  struct stats* stat_data = &(task_pids[pid]->stats);
+  
+  if (pid == current()->PID)
+    stat_data->remaining_ticks = sched_ticks;
+  else 
+    stat_data->remaining_ticks = 0;
+  int res = copy_to_user(stat_data, st, sizeof(struct stats));
+  if (res == -1) return -EACCES;
+  return 0;
+}
+

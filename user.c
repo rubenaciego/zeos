@@ -1,8 +1,7 @@
 #include <libc.h>
+#include <stats.h>
 
 char buff[24];
-
-int pid;
 
 int add(int a, int b)
 {
@@ -65,6 +64,7 @@ int __attribute__ ((__section__(".text.main")))
 
     if (pidfork == 0)
     {
+      
       int t0 = gettime();
 
       while (gettime() - t0 < 10000);
@@ -72,5 +72,22 @@ int __attribute__ ((__section__(".text.main")))
     }
   }
   
-  while(1) { }
+  while(1) { 
+    volatile int j = 0;
+    for (int i = 0; i < 10000000; ++i) {
+      j+=1;
+    }
+    struct stats stat_data;
+    int res = get_stats(getpid(), &stat_data);
+    if (res != 0) {
+      char* msg = "Error getting stats \n";
+      write(1, msg, strlen(msg));
+    }
+    struct stats stat_data2;
+    res = get_stats(pidfork, &stat_data2);
+    if (res != 0) {
+      char* msg = "Error getting stats \n";
+      write(1, msg, strlen(msg));
+    }
+  }
 }

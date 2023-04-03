@@ -5,6 +5,6 @@
 void stats_user_to_system();
 void stats_system_to_x();
 void stats_ready_to_system(struct task_struct * new);
-
+void clean_stats(struct task_struct * new);
 
 #endif

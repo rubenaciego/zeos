@@ -115,3 +115,30 @@ exit_ret:
 exit_no_err:
     popl %ebp
     ret
+    
+    
+ENTRY(get_stats)
+    pushl %ebp
+    movl %esp, %ebp
+    pushl %ebx
+    movl 8(%ebp), %ebx
+    movl 12(%ebp), %ecx
+    
+    movl $35, %eax
+    pushl $get_stats_ret
+    pushl %ebp
+    movl %esp, %ebp
+    sysenter
+get_stats_ret:
+    popl %ebp
+    addl $4, %esp
+    
+    cmpl $0, %eax
+    jge get_stats_no_err
+    negl %eax
+    movl %eax, errno
+    movl $-1, %eax
+get_stats_no_err:
+    popl %ebx
+    popl %ebp
+    ret
