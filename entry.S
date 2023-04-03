@@ -74,15 +74,19 @@
 
 ENTRY(keyboard_handler)
       SAVE_ALL
-      EOI
+      call stats_user_to_system
       call keyboard_routine
+      call stats_system_to_x
+      EOI
       RESTORE_ALL
       iret
 
 ENTRY(clock_handler)
       SAVE_ALL
+      call stats_user_to_system
       EOI
       call clock_routine
+      call stats_system_to_x
       RESTORE_ALL
       iret
 
@@ -106,6 +110,8 @@ ENTRY(custom_page_fault_handler)
       
 ENTRY(syscall_handler)
       SAVE_ALL
+      call stats_user_to_system
+      mov 0x18(%esp), %eax
       cmpl $MAX_SYSCALL, %eax
       jnb syscall_err
       call *sys_call_table(,%eax, 4)
@@ -114,6 +120,7 @@ syscall_err:
       movl $-ENOSYS, %eax
 syscall_end:
       MODIFY_EAX
+      call stats_system_to_x
       RESTORE_ALL
       iret
 
@@ -124,6 +131,8 @@ ENTRY(syscall_handler_sysenter)
       push $__USER_CS
       push 4(%ebp)
       SAVE_ALL
+      call stats_user_to_system
+      mov 0x18(%esp), %eax
       cmpl $MAX_SYSCALL, %eax
       jnb sysenter_err
       call *sys_call_table(,%eax, 4)
@@ -132,6 +141,7 @@ sysenter_err:
       movl $-ENOSYS, %eax
 sysenter_end: 
       MODIFY_EAX
+      call stats_system_to_x
       RESTORE_ALL
       movl (%esp), %edx
       movl 12(%esp), %ecx

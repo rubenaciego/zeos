@@ -73,7 +73,8 @@ void init_idle (void)
 	list_del(idle_task_head);
 
 	idle_task_st->PID = 0;
-	idle_task_st->quantum = DEFAULT_QUANTUM;
+	//Idle should try to give up the processor at every tick:
+	idle_task_st->quantum = 1;
 	//allocate_DIR(idle_task_st);
 
 	unsigned long* stack = ((union task_union *) idle_task_st)->stack;
@@ -137,6 +138,8 @@ void inner_task_switch(union task_union* new)
 	tss.esp0 = (DWord)&(new->stack[KERNEL_STACK_SIZE]);
 	writeMSR(SYSENTER_ESP_MSR, (DWord) &(new->stack[KERNEL_STACK_SIZE]));
 	set_cr3(get_DIR(&(new->task)));
+	stats_system_to_x();
+	stats_ready_to_system((struct task_struct *) new);
 	inner_task_switch_asm(&(current()->sys_stack), new->task.sys_stack);
 }
 
