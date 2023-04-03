@@ -121,7 +121,7 @@ void keyboard_routine()
     if (ch == '\0') ch = 'C';
     printc_xy(0, 0, ch);
 
-
+    /*
     struct task_struct* c = current();
     static struct task_struct* other;
 
@@ -137,7 +137,7 @@ void keyboard_routine()
     }
     else
       task_switch((union task_union*)other);
-  }
+  */}
 }
 
 void clock_routine() {
