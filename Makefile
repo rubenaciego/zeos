@@ -37,6 +37,8 @@ SYSOBJ = \
 	utils.o \
 	hardware.o \
 	list.o \
+	keyboard.o \
+	roundbuffer.o \
 
 LIBZEOS = -L . -l zeos
 
@@ -99,6 +101,10 @@ mm.o:mm.c $(INCLUDEDIR)/types.h $(INCLUDEDIR)/mm.h
 sys.o:sys.c $(INCLUDEDIR)/devices.h
 
 utils.o:utils.c $(INCLUDEDIR)/utils.h
+
+keyboard.o:keyboard.c $(INCLUDEDIR)/keyboard.h
+
+roundbuffer.o:roundbuffer.c $(INCLUDEDIR)/roundbuffer.h
 
 
 system.o:system.c $(INCLUDEDIR)/hardware.h system.lds $(SYSOBJ) $(INCLUDEDIR)/segment.h $(INCLUDEDIR)/types.h $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/system.h $(INCLUDEDIR)/sched.h $(INCLUDEDIR)/mm.h $(INCLUDEDIR)/io.h $(INCLUDEDIR)/mm_address.h $(INCLUDEDIR)/stats.h $(INCLUDEDIR)/stat_funcs.h

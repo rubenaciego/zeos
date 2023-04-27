@@ -7,6 +7,7 @@
 #include <hardware.h>
 #include <io.h>
 #include <devices.h>
+#include <keyboard.h>
 
 #include <libc.h>
 #include <sched.h>
@@ -120,24 +121,8 @@ void keyboard_routine()
     unsigned char ch = scancode >= 98 ? 'C' : char_map[scancode];
     if (ch == '\0') ch = 'C';
     printc_xy(0, 0, ch);
-
-    /*
-    struct task_struct* c = current();
-    static struct task_struct* other;
-
-    char buff[128] = {'P', 'I', 'D', ' ', '=', ' ' };
-    itoa(c->PID, buff + 6);
-    printk(buff);
-    printc('\n');
-
-    if (c != &task[2])
-    {
-      other = c;
-      task_switch((union task_union*) &task[2]);
-    }
-    else
-      task_switch((union task_union*)other);
-  */}
+    roundbuf_push(&keyboard_rbuf, ch);
+  }
 }
 
 void clock_routine() {

@@ -149,6 +149,11 @@ void sys_exit()
   sched_next_rr(); 
 }
 
+int sys_read(char* buff, int len)
+{
+  return 0;
+}
+
 int sys_write(int fd, char* buff, int len)
 {
   int res = check_fd(fd, ESCRIPTURA);

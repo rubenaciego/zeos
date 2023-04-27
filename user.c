@@ -80,13 +80,13 @@ int __attribute__ ((__section__(".text.main")))
     struct stats stat_data;
     int res = get_stats(getpid(), &stat_data);
     if (res != 0) {
-      char* msg = "Error getting stats \n";
+      char* msg = "Error getting stats 1\n";
       write(1, msg, strlen(msg));
     }
     struct stats stat_data2;
     res = get_stats(pidfork, &stat_data2);
     if (res != 0) {
-      char* msg = "Error getting stats \n";
+      char* msg = "Error getting stats 2\n";
       write(1, msg, strlen(msg));
     }
   }
