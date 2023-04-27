@@ -50,7 +50,7 @@ int sys_getpid()
 
 int get_PID() {
   static int PID = 0;
-  while(task_pids[PID] != 0) {
+  while (task_pids[PID] != 0) {
     ++PID;
     if (PID == NR_PIDS) PID = 0;
   }
@@ -138,12 +138,6 @@ void sys_exit()
   int PID = current()->PID;
   task_pids[PID] = 0;
   page_table_entry* pt = get_PT(t);
-
-  for (int pag = 0; pag < NUM_PAG_CODE; ++pag) {
-    int frame = get_frame(pt, PAG_LOG_INIT_CODE + pag);
-    free_frame(frame);
-    del_ss_pag(pt, PAG_LOG_INIT_CODE + pag);
-  }
   
   for (int pag = 0; pag < NUM_PAG_DATA; ++pag) {
     int frame = get_frame(pt, PAG_LOG_INIT_DATA + pag);
