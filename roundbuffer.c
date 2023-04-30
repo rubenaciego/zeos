@@ -21,6 +21,7 @@ int roundbuf_is_full(roundbuf_t* rbuf)
 int roundbuf_get_occupation(roundbuf_t* rbuf)
 {
     int occupation = (rbuf->next - rbuf->first + rbuf->length) % rbuf->length;
+    return occupation;
 }
 
 void roundbuf_push(roundbuf_t* rbuf, char c)

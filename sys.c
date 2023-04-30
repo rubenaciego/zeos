@@ -44,6 +44,11 @@ int sys_ni_syscall()
 	return -ENOSYS; 
 }
 
+int sys_read(char* buffer, int size)
+{
+  return 0;
+}
+
 int sys_getpid()
 {
 	return current()->PID;

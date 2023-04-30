@@ -38,6 +38,21 @@ nok:
 	popl %ebp
 	ret
 
+/* int read(char *buffer, int size) */
+ENTRY(read)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx;  // Save EBX, ESI and EDI if modified
+	movl $3, %eax
+	movl 0x8(%ebp), %ecx;	//buffer
+	movl 0xC(%ebp), %edx;	//size
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok	// if (eax < 0) -> 
+	popl %ebp
+	ret
+
 /* int gettime() */
 ENTRY(gettime)
 	pushl %ebp

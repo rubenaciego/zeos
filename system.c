@@ -9,6 +9,7 @@
 #include <system.h>
 #include <sched.h>
 #include <mm.h>
+#include <keyboard.h>
 #include <io.h>
 #include <utils.h>
 //#include <zeos_mm.h> /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
@@ -82,6 +83,7 @@ int __attribute__((__section__(".text.main")))
 
   /* Initialize Memory */
   init_mm();
+  init_keyboard();
 
 /* Initialize an address space to be used for the monoprocess version of ZeOS */
 
