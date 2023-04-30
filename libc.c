@@ -3,7 +3,7 @@
  */
 
 #include <libc.h>
-#include <errno.h>
+
 #include <types.h>
 
 int errno;
@@ -14,7 +14,6 @@ void itoa(int a, char *b)
   char c;
   
   if (a==0) { b[0]='0'; b[1]=0; return ;}
-  if (a < 0) { b[0]='-'; a=-a; ++b; }
   
   i=0;
   while (a>0)
@@ -46,18 +45,9 @@ int strlen(char *a)
 
 void perror()
 {
-  char* msg;
-  switch (errno)
-  {
-    case EBADF: msg = "Bad file descriptor\n"; break;
-    case ENOMEM: msg = "Cannot allocate memory\n"; break;
-    case EACCES: msg = "Permission denied\n"; break;
-    case EFAULT: msg = "Bad address\n"; break;
-    case EFBIG: msg = "File too large\n"; break;
-    case ENOSYS: msg = "Function not implemented\n"; break;
-    case EOVERFLOW: msg = "Value too large for defined data type\n"; break;
-    default: msg = "Unknown error\n";
-  }
+  char buffer[256];
 
-  write(1, msg, strlen(msg));
+  itoa(errno, buffer);
+
+  write(1, buffer, strlen(buffer));
 }

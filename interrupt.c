@@ -6,39 +6,22 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
-#include <devices.h>
-#include <keyboard.h>
 
-#include <libc.h>
 #include <sched.h>
 
 #include <zeos_interrupt.h>
 
-#define PAGE_FAULT_IDT_ENTRY 14
-#define CLOCK_IDT_ENTRY 32
-#define KEYBOARD_IDT_ENTRY 33
-#define KEYBOARD_PORT 0x60
-
-#define SYSCALL_IDT_ENTRY 0x80
-
 Gate idt[IDT_ENTRIES];
 Register    idtR;
-QWord zeos_ticks;
-
-void clock_handler();
-void keyboard_handler();
-void syscall_handler();
-void custom_page_fault_handler();
-
 
 char char_map[] =
 {
   '\0','\0','1','2','3','4','5','6',
-  '7','8','9','0','\'','ยก','\0','\0',
+  '7','8','9','0','\'','ก','\0','\0',
   'q','w','e','r','t','y','u','i',
   'o','p','`','+','\0','\0','a','s',
-  'd','f','g','h','j','k','l','รฑ',
-  '\0','ยบ','\0','รง','z','x','c','v',
+  'd','f','g','h','j','k','l','๑',
+  '\0','บ','\0','็','z','x','c','v',
   'b','n','m',',','.','-','\0','*',
   '\0','\0','\0','\0','\0','\0','\0','\0',
   '\0','\0','\0','\0','\0','\0','\0','7',
@@ -47,6 +30,23 @@ char char_map[] =
   '\0','\0','\0','\0','\0','\0','\0','\0',
   '\0','\0'
 };
+
+int zeos_ticks = 0;
+
+void clock_routine()
+{
+  zeos_show_clock();
+  zeos_ticks ++;
+  
+  schedule();
+}
+
+void keyboard_routine()
+{
+  unsigned char c = inb(0x60);
+  
+  if (c&0x80) printc_xy(0, 0, char_map[c&0x7f]);
+}
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
@@ -92,6 +92,18 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
   idt[vector].highOffset      = highWord((DWord)handler);
 }
 
+void clock_handler();
+void keyboard_handler();
+void system_call_handler();
+
+void setMSR(unsigned long msr_number, unsigned long high, unsigned long low);
+
+void setSysenter()
+{
+  setMSR(0x174, 0, __KERNEL_CS);
+  setMSR(0x175, 0, INITIAL_ESP);
+  setMSR(0x176, 0, (unsigned long)system_call_handler);
+}
 
 void setIdt()
 {
@@ -102,60 +114,11 @@ void setIdt()
   set_handlers();
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
-  setInterruptHandler(KEYBOARD_IDT_ENTRY, keyboard_handler, 0);
-  setInterruptHandler(PAGE_FAULT_IDT_ENTRY, custom_page_fault_handler, 0);
-  setInterruptHandler(CLOCK_IDT_ENTRY, clock_handler, 0);
-  setTrapHandler(SYSCALL_IDT_ENTRY, syscall_handler, 3);
+  setInterruptHandler(32, clock_handler, 0);
+  setInterruptHandler(33, keyboard_handler, 0);
+
+  setSysenter();
 
   set_idt_reg(&idtR);
 }
 
-/* INTERRUPT SERVICE ROUTINES */
-extern struct task_struct* idle_task;
-void keyboard_routine()
-{
-  unsigned char kbstate = inb(KEYBOARD_PORT);
-  if (kbstate & 0x80) { //Break
-  } else { //Make
-    unsigned char scancode = kbstate & 0x7f;
-    unsigned char ch = scancode >= 98 ? 'C' : char_map[scancode];
-    if (ch == '\0') ch = 'C';
-    printc_xy(0, 0, ch);
-    roundbuf_push(&keyboard_rbuf, ch);
-  }
-}
-
-void clock_routine() {
-  ++zeos_ticks;
-  zeos_show_clock();
-  schedule();
-}
-
-char num_to_hex(Byte num) {
-  num &= 0xf;
-  char ans[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-  return ans[num];
-}
-
-void custom_page_fault_routine(int dir, int eip) {
-  char msg[] = "\nProcess generates a PAGE FAULT exception at EIP: 0x";
-  char snum[] = "GGGGGGGG ";
-  for (int i = 7; i >= 0; --i){
-    snum[i] = num_to_hex(eip);
-    eip >>= 4; 
-  }
-  sys_write_console(msg, sizeof(msg)-1);
-  sys_write_console(snum, sizeof(snum)-1);
-  char msg2[] = "by trying to access 0x";
-  for (int i = 7; i >= 0; --i){
-    snum[i] = num_to_hex(dir);
-    dir >>= 4; 
-  }
-  sys_write_console(msg2, sizeof(msg2)-1);
-  snum[8] = '\n';
-  sys_write_console(snum, sizeof(snum));
-  
-  
-  while (1) {};
-  
-}

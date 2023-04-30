@@ -11,14 +11,13 @@
 #include <mm.h>
 #include <io.h>
 #include <utils.h>
-#include <keyboard.h>
+//#include <zeos_mm.h> /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
 
-int (*usr_main)(void) = (void *) (PAG_LOG_INIT_CODE*PAGE_SIZE);
+
+int (*usr_main)(void) = (void *) PH_USER_START;
 unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
 unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
 unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
-
-void syscall_handler_sysenter();
 
 /************************/
 /** Auxiliar functions **/
@@ -55,13 +54,6 @@ inline void set_seg_regs(Word data_sel, Word stack_sel, DWord esp)
 
 }
 
-void setSysenter()
-{
-  writeMSR(SYSENTER_CS_MSR, __KERNEL_CS);
-  writeMSR(SYSENTER_ESP_MSR, INITIAL_ESP);
-  writeMSR(SYSENTER_EIP_MSR, (DWord)syscall_handler_sysenter); 
-}
-
 /*
  *   Main entry point to ZEOS Operating System
  */
@@ -76,25 +68,24 @@ int __attribute__((__section__(".text.main")))
   // compiler will know its final memory location. Otherwise it will try to use the
   // 'ds' register to access the address... but we are not ready for that yet
   // (we are still in real mode).
-  set_seg_regs(__KERNEL_DS, __KERNEL_DS, (DWord) &task[4]);
+  set_seg_regs(__KERNEL_DS, __KERNEL_DS, (DWord) &protected_tasks[5]);
 
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
 
-  printk_color("ZeOS\n", 0x1F);
   printk("Kernel Loaded!    ");
+
 
   /* Initialize hardware data */
   setGdt(); /* Definicio de la taula de segments de memoria */
   setIdt(); /* Definicio del vector de interrupcions */
-  setSysenter(); /* Crides al sistema utilitzant sysenter/sysexit */
   setTSS(); /* Definicio de la TSS */
 
   /* Initialize Memory */
   init_mm();
-  init_keyboard();
 
-  /* Initialize an address space to be used for the monoprocess version of ZeOS */
-  //monoprocess_init_addr_space(); /* TO BE DELETED WHEN THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS IS ADDED */
+/* Initialize an address space to be used for the monoprocess version of ZeOS */
+
+  //monoprocess_init_addr_space(); /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
 
   /* Initialize Scheduling */
   init_sched();
@@ -105,18 +96,20 @@ int __attribute__((__section__(".text.main")))
   init_task1();
 
   /* Move user code/data now (after the page table initialization) */
-  copy_data((void *) KERNEL_START + *p_sys_size, (void*)L_USER_START, *p_usr_size);
+  copy_data((void *) KERNEL_START + *p_sys_size, usr_main, *p_usr_size);
 
 
-  printk("Entering user mode...\n");
+  printk("Entering user mode...");
 
   enable_int();
   /*
    * We return from a 'theorical' call to a 'call gate' to reduce our privileges
    * and going to execute 'magically' at 'usr_main'...
    */
-  return_gate(__USER_DS, __USER_DS, USER_ESP, __USER_CS, (DWord) usr_main);
+  return_gate(__USER_DS, __USER_DS, USER_ESP, __USER_CS, L_USER_START);
 
   /* The execution never arrives to this point */
   return 0;
 }
+
+

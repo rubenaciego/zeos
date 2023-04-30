@@ -11,7 +11,6 @@
 typedef unsigned char       Byte;
 typedef unsigned short int  Word;
 typedef unsigned long       DWord;
-typedef unsigned long long  QWord;
 
 #define highWord(address) (Word)(((address) >> 16) & 0xFFFF)
 #define lowWord(address) (Word)((address) & 0xFFFF)

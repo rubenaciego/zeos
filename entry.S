@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <errno.h>
 
+
 /**************************************************/
 /**** Save & Restore ******************************/
 /**                                              **/
@@ -51,105 +52,68 @@
       movl %edx, %ds;           \
       movl %edx, %es
 
-#define MODIFY_EAX \
-      movl %eax, 0x18(%esp)
-
 #define RESTORE_ALL \
-      popl %ebx; \
-      popl %ecx; \
-      popl %edx; \
-      popl %esi; \
-      popl %edi; \
-      popl %ebp; \
-      popl %eax; \
-      popl %ds; \
-      popl %es; \
-      popl %fs; \
-      popl %gs
+      popl %ebx;   \
+      popl %ecx;   \
+      popl %edx;   \
+      popl %esi;   \
+      popl %edi;   \
+      popl %ebp;   \
+      popl %eax;   \
+      popl %ds;    \
+      popl %es;    \
+      popl %fs;    \
+      popl %gs;
 
 #define EOI \
-      movb $0x20, %al ; \
-      outb %al, $0x20
-
-
-ENTRY(keyboard_handler)
-      SAVE_ALL
-      call stats_user_to_system
-      call keyboard_routine
-      call stats_system_to_x
-      EOI
-      RESTORE_ALL
-      iret
+      movb $0x20, %al; \
+      outb %al, $0x20;
 
 ENTRY(clock_handler)
       SAVE_ALL
-      call stats_user_to_system
+      pushl %eax;
+      call user_to_system;
+      popl %eax;
       EOI
-      call clock_routine
-      call stats_system_to_x
+      call clock_routine;
+      pushl %eax;
+      call system_to_user;
+      popl %eax;
       RESTORE_ALL
-      iret
+      iret;
 
-/*
-  As we do not intend to return from this exception, we could avoid saving the
-  registers (omit the SAVE_ALL). With this, we would also not need to copy
-  push %eip to the stack again.
-  We are passing to the function not only the %eip of the instruction that
-  caused the fault but also the attempted access direction
-*/
-ENTRY(custom_page_fault_handler)
+ENTRY(keyboard_handler)
       SAVE_ALL
-      push 0x30(%esp)
-      mov %cr2, %eax
-      push %eax
-      call custom_page_fault_routine
-      addl $8, %esp
+      pushl %eax;
+      call user_to_system;
+      popl %eax;
+      EOI
+      call keyboard_routine;
+      pushl %eax;
+      call system_to_user;
+      popl %eax;
       RESTORE_ALL
-      addl $4, %esp /* Remove errror code */
-      iret
-      
-ENTRY(syscall_handler)
-      SAVE_ALL
-      call stats_user_to_system
-      mov 0x18(%esp), %eax
-      cmpl $MAX_SYSCALL, %eax
-      jnb syscall_err
-      call *sys_call_table(,%eax, 4)
-      jmp syscall_end
-syscall_err:
-      movl $-ENOSYS, %eax
-syscall_end:
-      MODIFY_EAX
-      call stats_system_to_x
-      RESTORE_ALL
-      iret
+      iret;
 
-ENTRY(syscall_handler_sysenter)
-      push $__USER_DS
-      push %ebp
-      pushfl
-      push $__USER_CS
-      push 4(%ebp)
-      SAVE_ALL
-      call stats_user_to_system
-      mov 0x18(%esp), %eax
-      cmpl $MAX_SYSCALL, %eax
-      jnb sysenter_err
-      call *sys_call_table(,%eax, 4)
-      jmp sysenter_end
+ENTRY(system_call_handler)
+	push $__USER_DS
+	push %ebp
+	pushfl
+	push $__USER_CS
+	push 4(%ebp)
+	SAVE_ALL	// What about arg 6?
+	cmpl $0, %eax
+	jl sysenter_err
+	cmpl $MAX_SYSCALL, %eax
+	jg sysenter_err
+	call *sys_call_table(, %eax, 0x04)
+	jmp sysenter_fin
 sysenter_err:
-      movl $-ENOSYS, %eax
-sysenter_end: 
-      MODIFY_EAX
-      call stats_system_to_x
-      RESTORE_ALL
-      movl (%esp), %edx
-      movl 12(%esp), %ecx
-      sti
-      sysexit
-      
-ENTRY(ret_from_fork)
-      movl $0, %eax
-      ret
-      
-
+	movl $-ENOSYS, %eax
+sysenter_fin:
+	movl %eax, 0x18(%esp)
+	RESTORE_ALL
+	movl (%esp), %edx // Return address
+	movl 12(%esp), %ecx	      // User stack address
+	sti
+	sysexit
