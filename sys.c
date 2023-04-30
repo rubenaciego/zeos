@@ -3,6 +3,8 @@
  */
 #include <devices.h>
 
+#include <keyboard.h>
+
 #include <utils.h>
 
 #include <io.h>
@@ -46,7 +48,9 @@ int sys_ni_syscall()
 
 int sys_read(char* buffer, int size)
 {
-  return 0;
+  if (!access_ok(ESCRIPTURA, buffer, size)) return -EACCES;
+  int l = roundbuf_copy_to(&keyboard_rbuf, buffer, size);
+  return l;
 }
 
 int sys_getpid()

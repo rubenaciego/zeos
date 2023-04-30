@@ -44,8 +44,8 @@ ENTRY(read)
 	movl %esp, %ebp
 	pushl %ebx;  // Save EBX, ESI and EDI if modified
 	movl $3, %eax
-	movl 0x8(%ebp), %ecx;	//buffer
-	movl 0xC(%ebp), %edx;	//size
+	movl 0x8(%ebp), %ebx;	//buffer
+	movl 0xC(%ebp), %ecx;	//size
 	call syscall_sysenter
 	popl %ebx
 	test %eax, %eax

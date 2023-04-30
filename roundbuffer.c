@@ -48,7 +48,7 @@ int roundbuf_copy_to(roundbuf_t* rbuf, char* dst, int len)
     if (occ < len) len = occ;
 
     for (int i = 0; i < len; ++i) {
-        dst[i] = rbuf->buffer[(rbuf->first + i)%rbuf->length];
+        dst[i] = rbuf->buffer[(rbuf->first + i) % rbuf->length];
     }
 
     rbuf->first = (rbuf->first + len) % rbuf->length;
