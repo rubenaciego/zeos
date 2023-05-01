@@ -241,9 +241,6 @@ int sys_create_thread( void (*function)(void* arg), void* parameter ) {
   copy_data(current(), uchild, sizeof(union task_union));
   
   uchild->task.TID=++global_TID;
-
-  
-  
   
   
   /* Prepare child stack for context switch */
@@ -259,6 +256,20 @@ int sys_create_thread( void (*function)(void* arg), void* parameter ) {
   uchild->stack[1022] = (DWord) user_stack;
   uchild->stack[1019] = (DWord)&thread_wrapper;
 
+  int register_ebp;		/* frame pointer */
+  /* Map Parent's ebp to child's stack */
+  register_ebp = (int) get_ebp();
+  register_ebp=(register_ebp - (int)current()) + (int)(uchild);
+
+  uchild->task.register_esp=register_ebp + sizeof(DWord);
+
+  DWord temp_ebp=*(DWord*)register_ebp;
+  /* Prepare child stack for context switch */
+  uchild->task.register_esp-=sizeof(DWord);
+  *(DWord*)(uchild->task.register_esp)=(DWord)&ret_from_fork;
+  uchild->task.register_esp-=sizeof(DWord);
+  *(DWord*)(uchild->task.register_esp)=temp_ebp;
+  
   /* Set stats to 0 */
   init_stats(&(uchild->task.p_stats));
 
@@ -269,7 +280,7 @@ int sys_create_thread( void (*function)(void* arg), void* parameter ) {
   /* Set the thread list to be empty */
   list_add_tail(&(uchild->task.th_list), &(current()->th_list));
   
-  return uchild->task.PID;
+  return uchild->task.TID;
 }
 
 
