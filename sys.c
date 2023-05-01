@@ -238,6 +238,7 @@ int sys_create_thread( void (*function)(void* arg), void* parameter ) {
   copy_data(current(), uchild, sizeof(union task_union));
   
   uchild->task.TID=++global_TID;
+  uchild->task.th_stack_page = stack_pag;
   
   
   /* Prepare child stack for context switch */
