@@ -58,7 +58,7 @@ int sys_getpid()
 	return current()->PID;
 }
 
-int global_PID=1000;
+int global_TID=1000;
 
 int ret_from_fork()
 {
@@ -132,7 +132,8 @@ int sys_fork(void)
   /* Deny access to the child's memory space */
   set_cr3(get_DIR(current()));
 
-  uchild->task.PID=++global_PID;
+  uchild->task.TID=++global_TID;
+  uchild->task.PID=uchild->task.TID;
   uchild->task.state=ST_READY;
 
   int register_ebp;		/* frame pointer */
@@ -155,6 +156,9 @@ int sys_fork(void)
   /* Queue child process into readyqueue */
   uchild->task.state=ST_READY;
   list_add_tail(&(uchild->task.list), &readyqueue);
+  
+  /* Set the thread list to be empty */
+  INIT_LIST_HEAD(&(uchild->task.th_list));
   
   return uchild->task.PID;
 }
@@ -212,6 +216,7 @@ void sys_exit()
   /* Free task_struct */
   list_add_tail(&(current()->list), &freequeue);
   
+  current()->TID=-1;
   current()->PID=-1;
   
   /* Restarts execution of the next process */

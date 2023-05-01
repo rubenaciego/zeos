@@ -17,13 +17,15 @@
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
-  int PID;			/* Process ID. This MUST be the first field of the struct. */
+  int TID;			/* Thread ID. This MUST be the first field of the struct. */
+  int PID;         /* PID, ie, group of threads ID. Matches TID in main thread */
   page_table_entry * dir_pages_baseAddr;
   struct list_head list;	/* Task struct enqueuing */
   int register_esp;		/* position in the stack */
   enum state_t state;		/* State of the process */
   int total_quantum;		/* Total quantum of the process */
   struct stats p_stats;		/* Process stats */
+  struct list_head th_list;
 };
 
 union task_union {

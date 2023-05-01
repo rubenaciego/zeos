@@ -164,6 +164,7 @@ void init_idle (void)
   struct task_struct *c = list_head_to_task_struct(l);
   union task_union *uc = (union task_union*)c;
 
+  c->TID=0;
   c->PID=0;
 
   c->total_quantum=DEFAULT_QUANTUM;
@@ -189,7 +190,10 @@ void init_task1(void)
   struct task_struct *c = list_head_to_task_struct(l);
   union task_union *uc = (union task_union*)c;
 
+  c->TID=1;
   c->PID=1;
+  
+  INIT_LIST_HEAD(&(c->th_list));
 
   c->total_quantum=DEFAULT_QUANTUM;
 
@@ -218,7 +222,7 @@ void init_freequeue()
   /* Insert all task structs in the freequeue */
   for (i=0; i<NR_TASKS; i++)
   {
-    task[i].task.PID=-1;
+    task[i].task.TID=-1;
     list_add_tail(&(task[i].task.list), &freequeue);
   }
 }
