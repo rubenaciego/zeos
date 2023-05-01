@@ -26,6 +26,7 @@ struct task_struct {
   int total_quantum;		/* Total quantum of the process */
   struct stats p_stats;		/* Process stats */
   struct list_head th_list;
+  int th_stack_page;
 };
 
 union task_union {
@@ -78,5 +79,7 @@ int needs_sched_rr();
 void update_sched_data_rr();
 
 void init_stats(struct stats *s);
+
+void kill_thread(struct task_struct* tts);
 
 #endif  /* __SCHED_H__ */

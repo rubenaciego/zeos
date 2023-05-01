@@ -2,6 +2,7 @@
 #include <types.h>
 
 #include <mm_address.h>
+#include <sched.h>
 
 void copy_data(void *start, void *dest, int size)
 {
@@ -82,7 +83,11 @@ int access_ok(int type, const void * addr, unsigned long size)
   	(addr_fin<=(USER_FIRST_PAGE+NUM_PAG_CODE+NUM_PAG_DATA)))
           return 1;
   }
+  if (current()->PID != current()->TID) {
+    return (addr_ini == addr_fin) && (addr_ini == current()->th_stack_page);
+  }
   return 0;
+  
 }
 
 

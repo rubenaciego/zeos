@@ -19,6 +19,8 @@
 
 #include <errno.h>
 
+#include <dyn_mem.h>
+
 #define LECTURA 0
 #define ESCRIPTURA 1
 
@@ -129,6 +131,19 @@ int sys_fork(void)
     copy_data((void*)(pag<<12), (void*)((pag+NUM_PAG_DATA)<<12), PAGE_SIZE);
     del_ss_pag(parent_PT, pag+NUM_PAG_DATA);
   }
+  
+  //TODO: check working
+  /* If fork is invoked from a thread, overwrite main() stack with calling thread stack */
+  if (current()->PID != current()->TID) {
+    int last_data_pag = NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA-1;
+    set_ss_pag(parent_PT, last_data_pag+NUM_PAG_DATA, get_frame(process_PT, last_data_pag));
+    set_ss_pag(parent_PT, last_data_pag-1+NUM_PAG_DATA, get_frame(process_PT, last_data_pag-1));
+    copy_data((void*)(current()->th_stack_page<<12), (void*)((last_data_pag+NUM_PAG_DATA)<<12)-16, PAGE_SIZE);
+    del_ss_pag(parent_PT, last_data_pag+NUM_PAG_DATA);
+    del_ss_pag(parent_PT, last_data_pag-1+NUM_PAG_DATA);
+    uchild->stack[1022] = USER_ESP - ((0x1000 - (uchild->stack[1022]&0xfff))&0xfff); 
+  }
+  
   /* Deny access to the child's memory space */
   set_cr3(get_DIR(current()));
 
@@ -159,6 +174,8 @@ int sys_fork(void)
   
   /* Set the thread list to be empty */
   INIT_LIST_HEAD(&(uchild->task.th_list));
+  
+  
   
   return uchild->task.PID;
 }
@@ -200,12 +217,98 @@ int sys_gettime()
   return zeos_ticks;
 }
 
+
+void thread_wrapper(void (*function)(void* arg), void* parameter );
+
+int sys_create_thread( void (*function)(void* arg), void* parameter ) {
+  struct list_head *lhcurrent = NULL;
+  union task_union *uchild;
+  int stack_pag;
+  
+  /* Any free task_struct? */
+  if (list_empty(&freequeue)) return -ENOMEM;
+  stack_pag = alloc_new_th_stack(current());
+  if (stack_pag == -1) return -ENOMEM;
+  
+  
+  lhcurrent=list_first(&freequeue);
+  
+  list_del(lhcurrent);
+  
+  uchild=(union task_union*)list_head_to_task_struct(lhcurrent);
+  
+  /* Copy the parent's task struct to child's */
+  copy_data(current(), uchild, sizeof(union task_union));
+  
+  uchild->task.TID=++global_TID;
+
+  
+  
+  
+  
+  /* Prepare child stack for context switch */
+  DWord * user_stack = (DWord *) ((stack_pag+1)<<12);
+  --user_stack;
+  *user_stack = (DWord) parameter;
+  --user_stack;
+  *user_stack = (DWord) function;
+  --user_stack;
+  *user_stack = 0; //false return address, could be ommited
+  
+  
+  uchild->stack[1022] = (DWord) user_stack;
+  uchild->stack[1019] = (DWord)&thread_wrapper;
+
+  /* Set stats to 0 */
+  init_stats(&(uchild->task.p_stats));
+
+  /* Queue child process into readyqueue */
+  uchild->task.state=ST_READY;
+  list_add_tail(&(uchild->task.list), &readyqueue);
+  
+  /* Set the thread list to be empty */
+  list_add_tail(&(uchild->task.th_list), &(current()->th_list));
+  
+  return uchild->task.PID;
+}
+
+
+void sys_exit();
+
+void sys_exit_thread() {
+  if(current()->PID == current()->TID) sys_exit();
+
+  page_table_entry *process_PT = get_PT(current());
+  
+  // Deallocate all the propietary physical page (stack)
+  free_frame(get_frame(process_PT, current()->th_stack_page));
+  del_ss_pag(process_PT, current()->th_stack_page);
+  
+  /* Free task_struct */
+  list_add_tail(&(current()->list), &freequeue);
+  
+  current()->TID=-1;
+  current()->PID=-1;
+  
+  /* Restarts execution of the next process */
+  sched_next_rr();  
+}
+
 void sys_exit()
-{  
+{ 
+  if(current()->PID != current()->TID) sys_exit_thread();
+  
   int i;
 
   page_table_entry *process_PT = get_PT(current());
 
+  struct list_head* pos, *n;
+  
+  /* Kill all child threads */
+  list_for_each_safe(pos, n, &(current()->th_list)) {
+    kill_thread(list_head_to_task_struct(pos));
+  }
+  
   // Deallocate all the propietary physical pages
   for (i=0; i<NUM_PAG_DATA; i++)
   {

@@ -268,3 +268,16 @@ void force_task_switch()
 
   sched_next_rr();
 }
+
+
+void kill_thread(struct task_struct* tts)  {
+  page_table_entry * PT = get_PT(tts);
+  free_frame(get_frame(PT, tts->th_stack_page));
+  del_ss_pag(PT, tts->th_stack_page);
+  list_del(&(tts->th_list));
+  list_add_tail(&(tts->list), &freequeue);
+  
+  tts->TID=-1;
+  tts->PID=-1;
+  
+}

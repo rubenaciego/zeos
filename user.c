@@ -27,3 +27,8 @@ int __attribute__ ((__section__(".text.main")))
 
   return 0;
 }
+
+void thread_wrapper(void (*function)(void* arg), void* parameter ) {
+  function(parameter);
+  exit_thread();
+}
