@@ -217,9 +217,6 @@ int sys_gettime()
   return zeos_ticks;
 }
 
-
-void thread_wrapper(void (*function)(void* arg), void* parameter );
-
 int sys_create_thread( void (*function)(void* arg), void* parameter ) {
   struct list_head *lhcurrent = NULL;
   union task_union *uchild;
@@ -254,7 +251,7 @@ int sys_create_thread( void (*function)(void* arg), void* parameter ) {
   
   
   uchild->stack[1022] = (DWord) user_stack;
-  uchild->stack[1019] = (DWord)&thread_wrapper;
+  uchild->stack[1019] = (DWord) THREAD_WRAPPER_DIR;
 
   int register_ebp;		/* frame pointer */
   /* Map Parent's ebp to child's stack */

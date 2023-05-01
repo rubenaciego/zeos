@@ -38,5 +38,26 @@ ENTRY (sys_call_table)
 	.long sys_ni_syscall	//33
 	.long sys_ni_syscall	//34
 	.long sys_get_stats	    //35
+	.long sys_ni_syscall	//36
+	.long sys_ni_syscall	//37
+	.long sys_ni_syscall	//38
+	.long sys_ni_syscall	//39
+	.long sys_ni_syscall	//40
+	.long sys_ni_syscall	//41
+	.long sys_ni_syscall	//42
+	.long sys_ni_syscall	//43
+	.long sys_ni_syscall	//44
+	.long sys_ni_syscall	//45
+	.long sys_ni_syscall	//46
+	.long sys_ni_syscall	//47
+	.long sys_ni_syscall	//48
+	.long sys_ni_syscall	//49
+	.long sys_ni_syscall    //50
+	.long sys_ni_syscall	//51
+	.long sys_ni_syscall	//52
+	.long sys_ni_syscall	//53
+	.long sys_ni_syscall	//54
+	.long sys_ni_syscall	//55
+	.long sys_create_thread	//56
 .globl MAX_SYSCALL
 MAX_SYSCALL = (. - sys_call_table)/4
