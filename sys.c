@@ -292,6 +292,7 @@ void sys_exit_thread() {
   // Deallocate all the propietary physical page (stack)
   free_frame(get_frame(process_PT, current()->th_stack_page));
   del_ss_pag(process_PT, current()->th_stack_page);
+  set_cr3(get_DIR(current()));
   
   /* Free task_struct */
   list_add_tail(&(current()->list), &freequeue);
