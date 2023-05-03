@@ -3,17 +3,21 @@
  */
 
 #include <io.h>
-
+#include <utils.h>
 #include <types.h>
 
 /**************/
 /** Screen  ***/
 /**************/
 
-#define NUM_COLUMNS 80
-#define NUM_ROWS    25
+screen_t screen;
 
-Byte x, y=19;
+void init_screen()
+{
+  screen.x = 0;
+  screen.y = 19;
+  screen.palette = 0x02;
+}
 
 /* Read a byte from 'port' */
 Byte inb (unsigned short port)
@@ -27,20 +31,32 @@ Byte inb (unsigned short port)
 void printc(char c)
 {
      __asm__ __volatile__ ( "movb %0, %%al; outb $0xe9" ::"a"(c)); /* Magic BOCHS debug: writes 'c' to port 0xe9 */
-  if (c=='\n')
+  
+  // \b -> move cursor one position back
+  if (c == '\b')
   {
-    x = 0;
-    y=(y+1)%NUM_ROWS;
+    if (screen.x != 0) --screen.x;
+    else if (screen.y != 0)
+    {
+      --screen.y;
+      screen.x = NUM_COLUMNS - 1;
+    }
+  }
+  // \n -> new line
+  else if (c == '\n')
+  {
+    screen.x = 0;
+    screen.y=(screen.y+1)%NUM_ROWS;
   }
   else
   {
-    Word ch = (Word) (c & 0x00FF) | 0x0200;
-	Word *screen = (Word *)0xb8000;
-	screen[(y * NUM_COLUMNS + x)] = ch;
-    if (++x >= NUM_COLUMNS)
+    Word ch = (Word) (c & 0x00FF) | (screen.palette << 8);
+    Word *sc = (Word *)0xb8000;
+    sc[(screen.y * NUM_COLUMNS + screen.x)] = ch;
+    if (++screen.x >= NUM_COLUMNS)
     {
-      x = 0;
-      y=(y+1)%NUM_ROWS;
+      screen.x = 0;
+      screen.y=(screen.y+1)%NUM_ROWS;
     }
   }
 }
@@ -48,13 +64,13 @@ void printc(char c)
 void printc_xy(Byte mx, Byte my, char c)
 {
   Byte cx, cy;
-  cx=x;
-  cy=y;
-  x=mx;
-  y=my;
+  cx=screen.x;
+  cy=screen.y;
+  screen.x=mx;
+  screen.y=my;
   printc(c);
-  x=cx;
-  y=cy;
+  screen.x=cx;
+  screen.y=cy;
 }
 
 void printk(char *string)
