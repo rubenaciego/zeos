@@ -11,6 +11,8 @@ int sys_write_console(char *buffer, int size)
   
   for (int i = 0; i < size; ++i)
   {
+    Byte terminal_print = 0;
+    
     // check terminal codes
     if (buffer[i] == esc && size - i > 1 && buffer[i+1] == '[')
     {
@@ -28,11 +30,13 @@ int sys_write_console(char *buffer, int size)
           {
             screen.palette = (screen.palette & 0xf0) | col;
             i += 4;
+            terminal_print = 1;
           }
           else if (fg_bg == '4')
           {
             screen.palette = (screen.palette & 0x0f) | (col << 4);
             i += 4;
+            terminal_print = 1;
           }
         }
       }
@@ -61,10 +65,12 @@ int sys_write_console(char *buffer, int size)
           screen.x = (Byte)x;
           screen.y = (Byte)y;
           i += 9;
+          terminal_print = 1;
         }
       }
     }
-    else
+    
+    if (!terminal_print)
       printc(buffer[i]);
   }
   
