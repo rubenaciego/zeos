@@ -3,7 +3,7 @@
 void remove_last()
 {
   unsigned short msg = '\b';
-  write(1, &msg, 2);
+  write(1, (char*)&msg, 2);
 }
 
 void move_cursor(unsigned char x, unsigned char y)
@@ -30,14 +30,15 @@ typedef enum
   RED,
   MAGENTA,
   BROWN,
-  GRAY
+  GRAY,
+  NUM_COLORS
 } color_t;
 
 void set_fg_color(color_t color)
 {
   static char buff[5] = {0x1b, '[', '3', 'x', 'm'};
 
-  if (color <= 7)
+  if (color < NUM_COLORS)
   {
     buff[3] = color + '0';
     write(1, buff, 5);
@@ -48,7 +49,7 @@ void set_bg_color(color_t color)
 {
   static char buff[5] = {0x1b, '[', '4', 'x', 'm'};
 
-  if (color <= 7)
+  if (color < NUM_COLORS)
   {
     buff[3] = color + '0';
     write(1, buff, 5);
