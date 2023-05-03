@@ -4,14 +4,24 @@ int __attribute__ ((__section__(".text.main")))
   main(void)
 {
   char buff[256];
+  int pid = fork();
+
+  if (pid == 0)
+  {
+    while (1)
+    {
+      char* str = "Second process here!\n";
+      write(1, str, strlen(str));
+
+     volatile int time_loss = 0;
+     for (int i = 0; i < 60000000; ++i)
+        ++time_loss;
+    }
+  }
+
   while (1)
   {
-    volatile int time_loss = 0;
-    for (int i = 0; i < 60000000; ++i) {
-      ++time_loss;
-    }
-
-    int l = read(buff, 5);
+    int l = read(buff, 1);
     char nl = '\n';
 
     for (int i = 0; i < l; ++i)

@@ -50,7 +50,8 @@ void keyboard_routine()
   {
     char ch = char_map[c&0x7f];
     printc_xy(0, 0, ch);
-    roundbuf_push(&keyboard_rbuf, ch);
+
+    keyboard_update(ch);
   }
 }
 

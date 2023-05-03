@@ -24,6 +24,7 @@ struct task_struct {
   enum state_t state;		/* State of the process */
   int total_quantum;		/* Total quantum of the process */
   struct stats p_stats;		/* Process stats */
+  int blocking_length; /* Amount of bytes awaiting to read in blocked state */
 };
 
 union task_union {

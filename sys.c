@@ -46,11 +46,23 @@ int sys_ni_syscall()
 	return -ENOSYS; 
 }
 
+extern struct list_head blocked;
+
 int sys_read(char* buffer, int size)
 {
   if (!access_ok(ESCRIPTURA, buffer, size)) return -EACCES;
-  int l = roundbuf_copy_to(&keyboard_rbuf, buffer, size);
-  return l;
+  if (size > KEYBOARD_BUF_CAP) size = KEYBOARD_BUF_CAP;
+
+  int available = roundbuf_get_occupation(&keyboard_rbuf);
+  if (available < size)
+  {
+    /* Block current process */
+    current()->blocking_length = size;
+    update_process_state_rr(current(), &blocked);
+    sched_next_rr();
+  }
+  
+  return roundbuf_copy_to(&keyboard_rbuf, buffer, size);
 }
 
 int sys_getpid()
