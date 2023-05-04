@@ -82,7 +82,16 @@ ENTRY(fork)
 	popl %ebp
 	ret
 
-/* void exit() */
+/* void exit_thread()*/
+ENTRY(exit_thread)
+	pushl %ebp
+	movl %esp, %ebp
+	movl $55, %eax
+	call syscall_sysenter
+	popl %ebp
+	ret
+
+/* void exit()*/
 ENTRY(exit)
 	pushl %ebp
 	movl %esp, %ebp
@@ -115,3 +124,17 @@ ENTRY(get_stats)
 	popl %ebp
 	ret
 
+/* int create_thread(int fd, char *buffer, int size) */
+ENTRY(create_thread)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx;  // Save EBX, ESI and EDI if modified
+	movl $56, %eax
+	movl 0x8(%ebp), %ebx;	//fd
+	movl 0xC(%ebp), %ecx;	//buffer
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok	// if (eax < 0) -> 
+	popl %ebp
+	ret

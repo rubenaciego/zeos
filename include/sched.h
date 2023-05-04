@@ -17,7 +17,8 @@
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
-  int PID;			/* Process ID. This MUST be the first field of the struct. */
+  int TID;			/* Thread ID. This MUST be the first field of the struct. */
+  int PID;         /* PID, ie, group of threads ID. Matches TID in main thread */
   page_table_entry * dir_pages_baseAddr;
   struct list_head list;	/* Task struct enqueuing */
   int register_esp;		/* position in the stack */
@@ -25,6 +26,8 @@ struct task_struct {
   int total_quantum;		/* Total quantum of the process */
   struct stats p_stats;		/* Process stats */
   int blocking_length; /* Amount of bytes awaiting to read in blocked state */
+  struct list_head th_list;
+  int th_stack_page;
 };
 
 union task_union {
@@ -77,5 +80,7 @@ int needs_sched_rr();
 void update_sched_data_rr();
 
 void init_stats(struct stats *s);
+
+void kill_thread(struct task_struct* tts);
 
 #endif  /* __SCHED_H__ */

@@ -1,5 +1,17 @@
 #include <libc.h>
 
+void thread_func(void* param) {
+  char* m = "\nThread\n";
+  write(1, m, strlen(m));
+  fork();
+  volatile time_loss = 0;
+  for (int i = 0; i < 60000000; ++i) {
+      ++time_loss;
+    }
+  char* s = "\nThread2\n";
+  write(1, s, strlen(s));
+}
+
 void remove_last()
 {
   unsigned short msg = '\b';
@@ -84,6 +96,7 @@ int __attribute__ ((__section__(".text.main")))
     }
   }
 
+  create_thread(thread_func, 0);
   while (1)
   {
     int l = read(buff, 1);
@@ -99,4 +112,10 @@ int __attribute__ ((__section__(".text.main")))
   }
 
   return 0;
+}
+
+void  __attribute__ ((__section__(".thread_wrapper_sec"))) 
+  thread_wrapper(void (*function)(void* arg), void* parameter ) {
+  function(parameter);
+  exit_thread();
 }

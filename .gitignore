@@ -8,3 +8,5 @@ user
 bootsect
 bochsout.txt
 .vscode
+*.kdev*
+compile_commands.json

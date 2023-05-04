@@ -32,4 +32,8 @@ int yield();
 
 int get_stats(int pid, struct stats *st);
 
+int create_thread( void (*function)(void* arg), void* parameter );
+
+void exit_thread();
+
 #endif  /* __LIBC_H__ */

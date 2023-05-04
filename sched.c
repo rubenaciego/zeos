@@ -164,6 +164,7 @@ void init_idle (void)
   struct task_struct *c = list_head_to_task_struct(l);
   union task_union *uc = (union task_union*)c;
 
+  c->TID=0;
   c->PID=0;
 
   c->total_quantum=DEFAULT_QUANTUM;
@@ -189,7 +190,11 @@ void init_task1(void)
   struct task_struct *c = list_head_to_task_struct(l);
   union task_union *uc = (union task_union*)c;
 
+  c->TID=1;
   c->PID=1;
+  c->th_stack_page = -1;
+  
+  INIT_LIST_HEAD(&(c->th_list));
 
   c->total_quantum=DEFAULT_QUANTUM;
 
@@ -218,7 +223,7 @@ void init_freequeue()
   /* Insert all task structs in the freequeue */
   for (i=0; i<NR_TASKS; i++)
   {
-    task[i].task.PID=-1;
+    task[i].task.TID=-1;
     list_add_tail(&(task[i].task.list), &freequeue);
   }
 }
@@ -252,7 +257,8 @@ void inner_task_switch(union task_union *new)
   setMSR(0x175, 0, (unsigned long)&(new->stack[KERNEL_STACK_SIZE]));
 
   /* TLB flush. New address space */
-  set_cr3(new_DIR);
+  if(current()->PID != new->task.PID)
+    set_cr3(new_DIR);
 
   switch_stack(&current()->register_esp, new->task.register_esp);
 }
@@ -264,4 +270,17 @@ void force_task_switch()
   update_process_state_rr(current(), &readyqueue);
 
   sched_next_rr();
+}
+
+
+void kill_thread(struct task_struct* tts)  {
+  page_table_entry * PT = get_PT(tts);
+  free_frame(get_frame(PT, tts->th_stack_page));
+  del_ss_pag(PT, tts->th_stack_page);
+  list_del(&(tts->th_list));
+  list_add_tail(&(tts->list), &freequeue);
+  
+  tts->TID=-1;
+  tts->PID=-1;
+  
 }
