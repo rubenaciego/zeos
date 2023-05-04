@@ -57,7 +57,7 @@ ENTRY (sys_call_table)
 	.long sys_ni_syscall	//52
 	.long sys_ni_syscall	//53
 	.long sys_ni_syscall	//54
-	.long sys_ni_syscall	//55
+	.long sys_exit_thread	//55
 	.long sys_create_thread	//56
 .globl MAX_SYSCALL
 MAX_SYSCALL = (. - sys_call_table)/4

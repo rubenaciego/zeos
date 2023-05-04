@@ -86,7 +86,7 @@ ENTRY(fork)
 ENTRY(exit_thread)
 	pushl %ebp
 	movl %esp, %ebp
-	movl $1, %eax /* actually it is the same call as exit */
+	movl $55, %eax
 	call syscall_sysenter
 	popl %ebp
 	ret

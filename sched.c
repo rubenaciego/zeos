@@ -192,6 +192,7 @@ void init_task1(void)
 
   c->TID=1;
   c->PID=1;
+  c->th_stack_page = -1;
   
   INIT_LIST_HEAD(&(c->th_list));
 

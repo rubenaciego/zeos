@@ -113,6 +113,28 @@ int sys_fork(void)
     }
   }
 
+  if (current()->PID != current()->TID) {
+    new_ph_pag=alloc_frame();
+    if (new_ph_pag!=-1) /* One page allocated */
+    {
+      set_ss_pag(process_PT, current()->th_stack_page, new_ph_pag);
+    }
+    else /* No more free pages left. Deallocate everything */
+    {
+      /* Deallocate allocated pages. Up to pag. */
+      for (i=0; i<NUM_PAG_DATA; i++)
+      {
+        free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
+        del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
+      }
+      /* Deallocate task_struct */
+      list_add_tail(lhcurrent, &freequeue);
+      
+      /* Return error */
+      return -EAGAIN; 
+    }
+  }
+
   /* Copy parent's SYSTEM and CODE to child. */
   page_table_entry *parent_PT = get_PT(current());
   for (pag=0; pag<NUM_PAG_KERNEL; pag++)
@@ -126,25 +148,18 @@ int sys_fork(void)
 
   for (pag=0;pag<NUM_PAG_DATA;pag++){
     set_ss_pag(parent_PT, PAG_LOG_INIT_CPY+pag, get_frame(process_PT, PAG_LOG_INIT_DATA+pag));
-    copy_data((void*)(PAG_LOG_INIT_DATA+pag<<12), (void*)((PAG_LOG_INIT_CPY+pag)<<12), PAGE_SIZE);
+    copy_data((void*)((PAG_LOG_INIT_DATA+pag)<<12), (void*)((PAG_LOG_INIT_CPY+pag)<<12), PAGE_SIZE);
     del_ss_pag(parent_PT, PAG_LOG_INIT_CPY+pag);
   }
   
-  //TODO: check working
-  /* If fork is invoked from a thread, copy the stack*/
-  /*
+  uchild->task.th_stack_page = current()->th_stack_page;
   if (current()->PID != current()->TID) {
-
-
-    int th_page = NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA+current()->th_stack_page;
-
-    set_ss_pag(parent_PT, last_data_pag+NUM_PAG_DATA, get_frame(process_PT, last_data_pag));
-    set_ss_pag(parent_PT, last_data_pag-1+NUM_PAG_DATA, get_frame(process_PT, last_data_pag-1));
-    copy_data((void*)(current()->th_stack_page<<12), (void*)((last_data_pag+NUM_PAG_DATA)<<12)-16, PAGE_SIZE);
-    del_ss_pag(parent_PT, last_data_pag+NUM_PAG_DATA);
-    del_ss_pag(parent_PT, last_data_pag-1+NUM_PAG_DATA);
-    uchild->stack[1022] = USER_ESP - ((0x1000 - (uchild->stack[1022]&0xfff))&0xfff); 
-  }*/
+    int th_page = current()->th_stack_page;
+    int cpy_page = PAG_LOG_INIT_CPY + th_page;
+    set_ss_pag(parent_PT, cpy_page, get_frame(process_PT, th_page));
+    copy_data((void*)(th_page<<12), (void*)(cpy_page<<12), PAGE_SIZE);
+    del_ss_pag(parent_PT, cpy_page);
+  }
   
   /* Deny access to the child's memory space */
   set_cr3(get_DIR(current()));
@@ -152,6 +167,7 @@ int sys_fork(void)
   uchild->task.TID=++global_TID;
   uchild->task.PID=uchild->task.TID;
   uchild->task.state=ST_READY;
+  
 
   int register_ebp;		/* frame pointer */
   /* Map Parent's ebp to child's stack */
@@ -308,6 +324,8 @@ void sys_exit_thread() {
 
 void sys_exit()
 { 
+  //In the future this might be changed to the same behaviour as linux
+  // This is the reason for these weird crossed calls
   if(current()->PID != current()->TID) sys_exit_thread();
   
   int i;
@@ -327,6 +345,12 @@ void sys_exit()
     free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
     del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
   }
+
+  if (current()->th_stack_page != -1) {
+    free_frame(get_frame(process_PT, current()->th_stack_page));
+    del_ss_pag(process_PT, current()->th_stack_page);
+  }
+
   
   /* Free task_struct */
   list_add_tail(&(current()->list), &freequeue);
