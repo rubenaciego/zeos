@@ -18,7 +18,8 @@ int __attribute__ ((__section__(".text.main")))
   char buff[256];
   
   create_thread(thread_func, 0);
-  
+  fork();
+  create_thread(thread_func, 0);
   while (1)
   {
     volatile int time_loss = 0;
