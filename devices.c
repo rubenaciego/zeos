@@ -3,7 +3,7 @@
 #include <list.h>
 
 // Queue for blocked processes in I/O 
-struct list_head blocked;
+struct list_head input_blocked;
 
 int sys_write_console(char *buffer, int size)
 {

@@ -1,13 +1,19 @@
 #include <libc.h>
 
+int mutex;
+
 void thread_func(void* param) {
   char* m = "\nThread\n";
   write(1, m, strlen(m));
-  fork();
+  //fork();
   volatile time_loss = 0;
+  mutex_lock(&mutex);
+  char* sl = "\nThread2locks\n";
+  write(1, sl, strlen(sl));
   for (int i = 0; i < 60000000; ++i) {
       ++time_loss;
     }
+  mutex_unlock(&mutex);
   char* s = "\nThread2\n";
   write(1, s, strlen(s));
 }
@@ -95,6 +101,8 @@ int __attribute__ ((__section__(".text.main")))
         ++time_loss;
     }
   }
+  
+  mutex_init(&mutex);
 
   create_thread(thread_func, 0);
   while (1)
@@ -102,6 +110,7 @@ int __attribute__ ((__section__(".text.main")))
     int l = read(buff, 1);
     char nl = '\n';
 
+    mutex_lock(&mutex);
     for (int i = 0; i < l; ++i)
     {
       char* m = "Pressed ";
@@ -109,6 +118,7 @@ int __attribute__ ((__section__(".text.main")))
       write(1, &buff[i], 1);
       write(1, &nl, 1); 
     }
+    mutex_unlock(&mutex);
   }
 
   return 0;

@@ -48,7 +48,7 @@ int sys_ni_syscall()
 	return -ENOSYS; 
 }
 
-extern struct list_head blocked;
+extern struct list_head input_blocked;
 
 int sys_read(char* buffer, int size)
 {
@@ -60,7 +60,7 @@ int sys_read(char* buffer, int size)
   {
     /* Block current process */
     current()->blocking_length = size;
-    update_process_state_rr(current(), &blocked);
+    update_process_state_rr(current(), &input_blocked);
     sched_next_rr();
   }
   
@@ -401,3 +401,27 @@ int sys_get_stats(int pid, struct stats *st)
   }
   return -ESRCH; /*ESRCH */
 }
+
+int sys_mutex_unlock(int *m) {
+  if (!access_ok(ESCRIPTURA, m, sizeof(int*))) return -EACCES;
+  *m = 0;
+  return 0;
+}
+
+
+int sys_mutex_init(int* m) {
+  if (!access_ok(ESCRIPTURA, m, sizeof(int*))) return -EACCES;
+  *m = 0;
+  return 0;
+}
+
+int sys_mutex_lock(int* m) {
+  if (!access_ok(ESCRIPTURA, m, sizeof(int*))) return -EACCES;
+  while(*m) {
+    force_task_switch();
+  }
+  *m = 1;
+  return 0;
+}
+
+

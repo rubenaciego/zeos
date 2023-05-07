@@ -138,3 +138,45 @@ ENTRY(create_thread)
 	js nok	// if (eax < 0) -> 
 	popl %ebp
 	ret
+
+/* int mutex_init(int* m) */
+ENTRY(mutex_init)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx;  // Save EBX, ESI and EDI if modified
+	movl $5, %eax
+	movl 0x8(%ebp), %ebx;	//*m
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok	// if (eax < 0) -->
+	popl %ebp
+	ret
+
+/* int mutex_lock(int* m) */
+ENTRY(mutex_lock)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx;  // Save EBX, ESI and EDI if modified
+	movl $6, %eax
+	movl 0x8(%ebp), %ebx;	//*m
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok	// if (eax < 0) -->
+	popl %ebp
+	ret
+
+/* int mutex_unlock(int* m) */
+ENTRY(mutex_unlock)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx;  // Save EBX, ESI and EDI if modified
+	movl $7, %eax
+	movl 0x8(%ebp), %ebx;	//*m
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok	// if (eax < 0) -->
+	popl %ebp
+	ret
