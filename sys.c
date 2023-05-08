@@ -462,7 +462,7 @@ int sys_dyn_mem(int num_bytes)
   if (update_heap(ts, next_brk) == -1)
     return -ENOMEM;
 
-  struct list_head* head = &current()->th_list;
+  struct list_head* head = &ts->th_list;
   struct list_head* pos = head;
   do {
     list_head_to_task_struct(pos)->brk_ptr = next_brk;
