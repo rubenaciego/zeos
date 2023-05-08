@@ -103,6 +103,9 @@ void set_user_pages( struct task_struct *task )
   	process_PT[PAG_LOG_INIT_DATA+pag].bits.rw = 1;
   	process_PT[PAG_LOG_INIT_DATA+pag].bits.present = 1;
   }
+
+  /* HEAP */
+  task->brk_ptr = (void*)(PAG_LOG_INIT_HEAP * PAGE_SIZE);
 }
 
 /* Writes on CR3 register producing a TLB flush */

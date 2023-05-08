@@ -424,4 +424,17 @@ int sys_mutex_lock(int* m) {
   return 0;
 }
 
+int sys_dyn_mem(int num_bytes)
+{
+  struct task_struct* ts = list_head_to_task_struct(list_first(&current()->th_list));
+  void* curr_brk = ts->brk_ptr;
+  void* next_brk = curr_brk + num_bytes;
+  if ((int)next_brk < PAG_LOG_INIT_HEAP * PAGE_SIZE) return -EINVAL;
 
+  int pages = ((int)next_brk + PAGE_SIZE - 1) / PAGE_SIZE - PAG_LOG_INIT_HEAP;
+  if (pages > NUM_PAG_HEAP) return -ENOMEM;
+
+  if (update_heap(ts, next_brk) == -1)
+    return -ENOMEM; 
+  return (int)curr_brk;
+}

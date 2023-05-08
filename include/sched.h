@@ -28,6 +28,7 @@ struct task_struct {
   int blocking_length; /* Amount of bytes awaiting to read in blocked state */
   struct list_head th_list;
   int th_stack_page;
+  void* brk_ptr;
 };
 
 union task_union {

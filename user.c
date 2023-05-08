@@ -6,7 +6,7 @@ void thread_func(void* param) {
   char* m = "\nThread\n";
   write(1, m, strlen(m));
   //fork();
-  volatile time_loss = 0;
+  volatile int time_loss = 0;
   mutex_lock(&mutex);
   char* sl = "\nThread2locks\n";
   write(1, sl, strlen(sl));
@@ -74,10 +74,26 @@ void set_bg_color(color_t color)
   }
 }
 
+void test_dyn_mem()
+{
+  char* brk = dyn_mem(1);
+  *brk = 0;
+  *(brk + 4095) = 0;
+  //*(brk + 4096) = 0; // page fault
+  dyn_mem(4096);
+  *(brk + 4096) = 0;
+  *(brk + 2*4096-1) = 0;
+  //*(brk + 2*4096) = 0; // page fault
+  dyn_mem(-1);
+  //*(brk + 4096) = 0; // page fault
+}
+
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
   char buff[256];
+
+  test_dyn_mem();
 
   move_cursor(0, 10);
   set_fg_color(BLUE);

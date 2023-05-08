@@ -42,4 +42,6 @@ int mutex_lock(int *m);
 
 int mutex_unlock(int *m);
 
+void* dyn_mem(int num_bytes);
+
 #endif  /* __LIBC_H__ */
