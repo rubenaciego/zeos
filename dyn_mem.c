@@ -70,6 +70,5 @@ int update_heap(struct task_struct* ts, void* next_brk)
     }
   }
 
-  ts->brk_ptr = next_brk;
   return 0;
 }

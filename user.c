@@ -79,6 +79,7 @@ void test_dyn_mem()
   char* brk = dyn_mem(1);
   *brk = 0;
   *(brk + 4095) = 0;
+  int pid = fork();
   //*(brk + 4096) = 0; // page fault
   dyn_mem(4096);
   *(brk + 4096) = 0;
@@ -86,6 +87,8 @@ void test_dyn_mem()
   //*(brk + 2*4096) = 0; // page fault
   dyn_mem(-1);
   //*(brk + 4096) = 0; // page fault
+
+  if (pid == 0) exit();
 }
 
 int __attribute__ ((__section__(".text.main")))

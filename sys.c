@@ -125,6 +125,31 @@ int sys_fork(void)
     }
   }
 
+  /* Allocate pages for HEAP */
+  int heap_pages = ((int)current()->brk_ptr + PAGE_SIZE - 1) / PAGE_SIZE - PAG_LOG_INIT_HEAP;
+  for (pag=0; pag<heap_pages; pag++)
+  {
+    new_ph_pag=alloc_frame();
+    if (new_ph_pag!=-1) /* One page allocated */
+    {
+      set_ss_pag(process_PT, PAG_LOG_INIT_HEAP+pag, new_ph_pag);
+    }
+    else /* No more free pages left. Deallocate everything */
+    {
+      /* Deallocate allocated pages. Up to pag. */
+      for (i=0; i<pag; i++)
+      {
+        free_frame(get_frame(process_PT, PAG_LOG_INIT_HEAP+i));
+        del_ss_pag(process_PT, PAG_LOG_INIT_HEAP+i);
+      }
+      /* Deallocate task_struct */
+      list_add_tail(lhcurrent, &freequeue);
+      
+      /* Return error */
+      return -EAGAIN; 
+    }
+  }
+
   if (current()->PID != current()->TID) {
     new_ph_pag=alloc_frame();
     if (new_ph_pag!=-1) /* One page allocated */
@@ -426,7 +451,7 @@ int sys_mutex_lock(int* m) {
 
 int sys_dyn_mem(int num_bytes)
 {
-  struct task_struct* ts = list_head_to_task_struct(list_first(&current()->th_list));
+  struct task_struct* ts = current();
   void* curr_brk = ts->brk_ptr;
   void* next_brk = curr_brk + num_bytes;
   if ((int)next_brk < PAG_LOG_INIT_HEAP * PAGE_SIZE) return -EINVAL;
@@ -435,6 +460,14 @@ int sys_dyn_mem(int num_bytes)
   if (pages > NUM_PAG_HEAP) return -ENOMEM;
 
   if (update_heap(ts, next_brk) == -1)
-    return -ENOMEM; 
+    return -ENOMEM;
+
+  struct list_head* head = &current()->th_list;
+  struct list_head* pos = head;
+  do {
+    list_head_to_task_struct(pos)->brk_ptr = next_brk;
+    pos = pos->next;
+  } while (pos != head);
+  
   return (int)curr_brk;
 }
