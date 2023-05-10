@@ -91,12 +91,20 @@ void test_dyn_mem()
   if (pid == 0) exit();
 }
 
+void test_malloc()
+{
+  char* dyn_buff = malloc(8134);
+  dyn_buff[8002] = 123;
+  free(dyn_buff);
+}
+
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
   char buff[256];
 
   test_dyn_mem();
+  test_malloc();
 
   move_cursor(0, 10);
   set_fg_color(BLUE);
