@@ -20,6 +20,8 @@ union task_union protected_tasks[NR_TASKS+2]
 
 union task_union *task = &protected_tasks[1]; /* == union task_union task[NR_TASKS] */
 
+struct mutex_struct mutexes[N_MUTEX];
+
 #if 0
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
@@ -228,9 +230,22 @@ void init_freequeue()
   }
 }
 
+void init_mutexes() {
+  for (int i = 0; i < N_MUTEX; ++i) {
+    mutexes[i].PID = -1;
+  }
+}
+
+void free_mutexes() {
+  for (int i = 0; i < N_MUTEX; ++i) {
+    if(mutexes[i].PID == current()->PID) mutexes[i].PID = -1;;
+  }
+}
+
 void init_sched()
 {
   init_freequeue();
+  init_mutexes();
   INIT_LIST_HEAD(&readyqueue);
   INIT_LIST_HEAD(&input_blocked);
 }

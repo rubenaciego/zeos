@@ -388,6 +388,7 @@ void sys_exit()
     del_ss_pag(process_PT, current()->th_stack_page);
   }
 
+  free_mutexes();
   
   /* Free task_struct */
   list_add_tail(&(current()->list), &freequeue);
@@ -427,25 +428,51 @@ int sys_get_stats(int pid, struct stats *st)
   return -ESRCH; /*ESRCH */
 }
 
-int sys_mutex_unlock(int *m) {
-  if (!access_ok(ESCRIPTURA, m, sizeof(int*))) return -EACCES;
-  *m = 0;
-  return 0;
+struct mutex_struct* get_free_mutex(){
+  for (int i = 0; i < N_MUTEX; ++i) {
+    if (mutexes[i].PID == -1) return &mutexes[i];
+  }
+  return NULL;
 }
 
+struct mutex_struct* get_mutex(int* m) {
+  for (int i = 0; i < N_MUTEX; ++i) {
+    if (mutexes[i].PID == current()->PID && mutexes[i].ref == m) return &mutexes[i];
+  }
+  return NULL;
+}
 
 int sys_mutex_init(int* m) {
-  if (!access_ok(ESCRIPTURA, m, sizeof(int*))) return -EACCES;
-  *m = 0;
+  struct mutex_struct* mutex_array_str = get_free_mutex();
+  if (mutex_array_str == NULL) return -ENOMEM;
+  
+  mutex_array_str->ref = m;
+  mutex_array_str->PID = current()->PID;
+  mutex_array_str->val = 0;
+  INIT_LIST_HEAD(&(mutex_array_str->blocked));
   return 0;
 }
 
 int sys_mutex_lock(int* m) {
-  if (!access_ok(ESCRIPTURA, m, sizeof(int*))) return -EACCES;
-  while(*m) {
-    force_task_switch();
+  struct mutex_struct* mutex_array_str = get_mutex(m);
+  if (mutex_array_str == NULL) return -EACCES;
+  
+  if (mutex_array_str->val) {
+    update_process_state_rr(current(), &(mutex_array_str->blocked));
+    sched_next_rr();
   }
-  *m = 1;
+  mutex_array_str->val = 1;
+  return 0;
+}
+
+int sys_mutex_unlock(int *m) {
+  struct mutex_struct* mutex_array_str = get_mutex(m);
+  if (mutex_array_str == NULL) return -EACCES;
+  if (!list_empty(&(mutex_array_str->blocked))) {
+    struct task_struct* next_t =list_head_to_task_struct(list_first(&(mutex_array_str->blocked))) ;
+    update_process_state_rr(next_t, &readyqueue);
+  }
+  mutex_array_str->val = 0;
   return 0;
 }
 

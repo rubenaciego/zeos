@@ -13,6 +13,7 @@
 
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
+#define N_MUTEX 20
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
@@ -36,6 +37,14 @@ union task_union {
   unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, per procés */
 };
 
+struct mutex_struct {
+  int* ref;
+  int PID;
+  int val;
+  struct list_head blocked;
+};
+
+extern struct mutex_struct mutexes[N_MUTEX];
 extern union task_union protected_tasks[NR_TASKS+2];
 extern union task_union *task; /* Vector de tasques */
 extern struct task_struct *idle_task;
@@ -83,5 +92,7 @@ void update_sched_data_rr();
 void init_stats(struct stats *s);
 
 void kill_thread(struct task_struct* tts);
+
+void free_mutexes();
 
 #endif  /* __SCHED_H__ */

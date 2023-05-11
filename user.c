@@ -14,7 +14,7 @@ void thread_func(void* param) {
       ++time_loss;
     }
   mutex_unlock(&mutex);
-  char* s = "\nThread2\n";
+  char* s = "\nThread2unlocks\n";
   write(1, s, strlen(s));
 }
 
