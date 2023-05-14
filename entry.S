@@ -81,6 +81,17 @@ ENTRY(clock_handler)
       popl %eax;
       RESTORE_ALL
       iret;
+      
+ENTRY(custom_page_fault_handler)
+      SAVE_ALL
+      push 0x30(%esp)
+      mov %cr2, %eax
+      push %eax
+      call custom_page_fault_routine
+      addl $8, %esp
+      RESTORE_ALL
+      addl $4, %esp /* Remove errror code */
+      iret
 
 ENTRY(keyboard_handler)
       SAVE_ALL
