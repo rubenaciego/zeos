@@ -143,6 +143,17 @@ void draw() {
 
 int playing = 1;
 
+float barv = 0;
+
+void move_bar() {
+  float nbarx = bbar_x + barv;
+  if (nbarx < BE_FIRST_COL || BE_LAST_COL <= nbarx + BBAR_SIZE) {
+    barv = -0.5*barv;
+    return;
+  }
+  bbar_x = nbarx;
+}
+
 void draw_thread(void* arg) {
   while(playing) {
     draw();
@@ -166,7 +177,26 @@ void physics_thread(void* arg) {
       ball_x = 40;
       ball_y = 10;      
     }
+    move_bar();
     sleep(120);
+  }
+}
+
+#define BAR_VEL 0.0005
+
+void control_thread(void* arg) {
+
+  char c;
+  
+  while(1) {
+    read(&c,1);
+    if (c == 'a') {
+       barv -= BAR_VEL;
+    } else if (c == 'd') {
+      barv += BAR_VEL;
+    } else {
+      barv = 0;
+    }
   }
 }
 
@@ -178,8 +208,10 @@ void init_breakout() {
   ball_y += 20.0f;
   init_board();
   print_board();
+  mutex_init(&bbar_x);
   create_thread(draw_thread, 0);
   create_thread(physics_thread, 0);
+  create_thread(control_thread, 0);
   while(1);
   //print_ball(ball_x, ball_y);page
 
