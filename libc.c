@@ -51,3 +51,8 @@ void perror()
 
   write(1, buffer, strlen(buffer));
 }
+
+void* sbrk(int num_bytes)
+{
+  return dyn_mem(num_bytes);
+}

@@ -88,7 +88,7 @@ roundbuffer.o:roundbuffer.c $(INCLUDEDIR)/roundbuffer.h
 
 dyn_mem.o:dyn_mem.c $(INCLUDEDIR)/dyn_mem.h
 
-malloc.o:malloc.c $(INCLUDEDIR)/libc.h
+malloc.o:malloc.c $(INCLUDEDIR)/malloc.h
 
 userio.o:userio.c $(INCLUDEDIR)/userio.h
 
