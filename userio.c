@@ -1,5 +1,6 @@
-#include<userio.h>
-#include<utils.h>
+#include <userio.h>
+#include <utils.h>
+#include <libc.h>
 
 void remove_last()
 {
@@ -30,7 +31,7 @@ void set_fg_color(color_t color)
   {
     buff[3] = color + '0';
     write(1, buff, 5);
-  } else if (B_BLACK <= color && color < MAX_B_COLORS) {
+  } else if (NUM_DIM_COLORS < color && color < MAX_B_COLORS) {
     buff2[3] = (color&0xf) + '0';
     write(1, buff2, 5);
   }
@@ -39,13 +40,24 @@ void set_fg_color(color_t color)
 void set_bg_color(color_t color)
 {
   static char buff[5] = {0x1b, '[', '4', 'x', 'm'};
-  static char buff2[6] = {0x1b, '[', '1', '0', 'x', 'm'};
+  static char buff2[5] = {0x1b, '[', '1', 'x', 'm'};
+
   if (color < NUM_DIM_COLORS)
   {
     buff[3] = color + '0';
     write(1, buff, 5);
-  } else if (B_BLACK <= color && color < MAX_B_COLORS) {
-    buff2[4] = (color&0xf) + '0';
-    write(1, buff2, 6);
+  } else if (NUM_DIM_COLORS < color && color < MAX_B_COLORS) {
+    buff2[3] = (color&0xf) + '0';
+    write(1, buff2, 5);
   }
+}
+
+void clear_screen()
+{
+  unsigned long long zero = 0;
+  
+  for (int i = 0; i < SCREEN_ROWS * SCREEN_COLUMNS / sizeof(zero); ++i)
+    write(1, (char*)&zero, sizeof(zero));
+
+  move_cursor(0, 0);
 }

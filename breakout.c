@@ -20,9 +20,6 @@ void init_board() {
 
 
 void print_board() {
-  
-  
-  
   color_t color = BLUE;
   for (int i = 0; i < BOARD_ROWS; ++i) {
     move_cursor(BE_FIRST_COL, BE_FIRST_LINE+i);
@@ -49,7 +46,7 @@ void print_del_block(int i, int j) {
 void print_ball(int i, int j) {
   move_cursor(BE_FIRST_COL+j, BE_FIRST_LINE+i);
   set_bg_color(BLACK);
-  set_fg_color(GRAY);
+  set_fg_color(LIGHT_GRAY);
   write(1,"O",1);
 }
 

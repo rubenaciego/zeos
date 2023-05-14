@@ -47,9 +47,9 @@ void test_malloc()
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
-  char buff[256];
-
+  clear_screen();
   init_breakout();
+
   /*
   test_dyn_mem();
   test_malloc();
