@@ -1,4 +1,5 @@
 #include <libc.h>
+#include <userio.h>
 
 int mutex;
 
@@ -16,62 +17,6 @@ void thread_func(void* param) {
   mutex_unlock(&mutex);
   char* s = "\nThread2unlocks\n";
   write(1, s, strlen(s));
-}
-
-void remove_last()
-{
-  unsigned short msg = '\b';
-  write(1, (char*)&msg, 2);
-}
-
-void move_cursor(unsigned char x, unsigned char y)
-{
-  static char buff[10] = {0x1b, '[', 'x', 'x', 'x', ';', 'y', 'y', 'y', 'H'};
-
-  for (int i = 0; i < 3; ++i)
-  {
-    buff[4 - i] = (x % 10) + '0';
-    buff[8 - i] = (y % 10) + '0';
-    x /= 10;
-    y /= 10;
-  }
-
-  write(1, buff, 10);
-}
-
-typedef enum
-{
-  BLACK = 0,
-  BLUE,
-  GREEN,
-  CYAN,
-  RED,
-  MAGENTA,
-  BROWN,
-  GRAY,
-  NUM_COLORS
-} color_t;
-
-void set_fg_color(color_t color)
-{
-  static char buff[5] = {0x1b, '[', '3', 'x', 'm'};
-
-  if (color < NUM_COLORS)
-  {
-    buff[3] = color + '0';
-    write(1, buff, 5);
-  }
-}
-
-void set_bg_color(color_t color)
-{
-  static char buff[5] = {0x1b, '[', '4', 'x', 'm'};
-
-  if (color < NUM_COLORS)
-  {
-    buff[3] = color + '0';
-    write(1, buff, 5);
-  }
 }
 
 void test_dyn_mem()
