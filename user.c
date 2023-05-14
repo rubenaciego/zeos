@@ -1,5 +1,6 @@
 #include <libc.h>
 #include <userio.h>
+#include <breakout.h>
 
 int mutex;
 
@@ -48,6 +49,8 @@ int __attribute__ ((__section__(".text.main")))
 {
   char buff[256];
 
+  init_breakout();
+  /*
   test_dyn_mem();
   test_malloc();
 
@@ -92,6 +95,7 @@ int __attribute__ ((__section__(".text.main")))
     }
     mutex_unlock(&mutex);
   }
+  */
 
   return 0;
 }

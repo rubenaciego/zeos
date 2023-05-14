@@ -11,7 +11,17 @@ typedef enum
   MAGENTA,
   BROWN,
   GRAY,
-  NUM_COLORS
+  NUM_DIM_COLORS,
+  B_BLACK = 16,
+  B_RED,
+  B_GREEN,
+  B_CYAN,
+  B_BLUE,
+  B_MAGENTA,
+  YELLOW,
+  WHITE,
+  MAX_B_COLORS
+  
 } color_t;
 
 
