@@ -56,7 +56,7 @@ void print_ball(int x, int y) {
 void erase_ball(int x, int y) {
   move_cursor(x, y);
   set_bg_color(BLACK);
-  set_fg_color(GRAY);
+  set_fg_color(LIGHT_GRAY);
   write(1," ",1);
 }
 
