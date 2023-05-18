@@ -53,18 +53,26 @@ extern struct list_head input_blocked;
 int sys_read(char* buffer, int size)
 {
   if (!access_ok(ESCRIPTURA, buffer, size)) return -EACCES;
-  if (size > KEYBOARD_BUF_CAP) size = KEYBOARD_BUF_CAP;
-
+  
+  int bytes_read = 0;
   int available = roundbuf_get_occupation(&keyboard_rbuf);
-  if (available < size)
+  while (available < size)
   {
     /* Block current process */
-    current()->blocking_length = size;
+    current()->blocking_length = min(size, KEYBOARD_BUF_CAP);
     update_process_state_rr(current(), &input_blocked);
     sched_next_rr();
+    int read = roundbuf_copy_to(&keyboard_rbuf, buffer, current()->blocking_length);
+    buffer += read;
+    size -= read;
+    bytes_read += read;
+    available = roundbuf_get_occupation(&keyboard_rbuf);
   }
+
+  if (size != 0)
+    bytes_read += roundbuf_copy_to(&keyboard_rbuf, buffer, size);
   
-  return roundbuf_copy_to(&keyboard_rbuf, buffer, size);
+  return bytes_read;
 }
 
 int sys_getpid()

@@ -58,8 +58,8 @@ void print_ball(int x, int y) {
 
 volatile float ball_x;
 volatile float ball_y;
-float ball_vx =0.001;
-float ball_vy = -0.0001;
+float ball_vx =0.0005;
+float ball_vy = -0.00005;
 
 
 float bbar_x = 6;

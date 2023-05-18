@@ -3,7 +3,7 @@
 
 #include "roundbuffer.h"
 
-#define KEYBOARD_BUF_CAP 255
+#define KEYBOARD_BUF_CAP 3
 
 extern char keyboard_buffer_array[KEYBOARD_BUF_CAP+1];
 extern roundbuf_t keyboard_rbuf;

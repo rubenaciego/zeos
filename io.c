@@ -30,7 +30,7 @@ Byte inb (unsigned short port)
 
 void printc(char c)
 {
-     __asm__ __volatile__ ( "movb %0, %%al; outb $0xe9" ::"a"(c)); /* Magic BOCHS debug: writes 'c' to port 0xe9 */
+  //   __asm__ __volatile__ ( "movb %0, %%al; outb $0xe9" ::"a"(c)); /* Magic BOCHS debug: writes 'c' to port 0xe9 */
   
   // \b -> move cursor one position back
   if (c == '\b')

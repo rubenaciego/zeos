@@ -125,6 +125,22 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dst_queue)
   else t->state=ST_RUN;
 }
 
+void update_process_state_rr_first(struct task_struct *t, struct list_head *dst_queue)
+{
+  if (t->state!=ST_RUN) list_del(&(t->list));
+  if (dst_queue!=NULL)
+  {
+    list_add(&(t->list), dst_queue);
+    if (dst_queue!=&readyqueue) t->state=ST_BLOCKED;
+    else
+    {
+      update_stats(&(t->p_stats.system_ticks), &(t->p_stats.elapsed_total_ticks));
+      t->state=ST_READY;
+    }
+  }
+  else t->state=ST_RUN;
+}
+
 void sched_next_rr(void)
 {
   struct list_head *e;

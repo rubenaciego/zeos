@@ -23,6 +23,6 @@ void keyboard_update(char c)
         struct task_struct* t = list_head_to_task_struct(first);
         int l = roundbuf_get_occupation(&keyboard_rbuf);
         if (l >= t->blocking_length)
-            update_process_state_rr(t, &readyqueue);
+            update_process_state_rr_first(t, &readyqueue);
     }
 }
