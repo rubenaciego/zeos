@@ -53,24 +53,34 @@ extern struct list_head input_blocked;
 int sys_read(char* buffer, int size)
 {
   if (!access_ok(ESCRIPTURA, buffer, size)) return -EACCES;
-  
+  if (size == 0) return 0;
+
   int bytes_read = 0;
   int available = roundbuf_get_occupation(&keyboard_rbuf);
-  while (available < size)
+  current()->blocking_length = min(size, KEYBOARD_BUF_CAP);
+
+  /* We block at the end of the list if not empty */
+  if (!list_empty(&input_blocked) || available < current()->blocking_length)
   {
-    /* Block current process */
-    current()->blocking_length = min(size, KEYBOARD_BUF_CAP);
     update_process_state_rr(current(), &input_blocked);
     sched_next_rr();
+  }
+
+  do
+  {
     int read = roundbuf_copy_to(&keyboard_rbuf, buffer, current()->blocking_length);
     buffer += read;
     size -= read;
     bytes_read += read;
-    available = roundbuf_get_occupation(&keyboard_rbuf);
-  }
 
-  if (size != 0)
-    bytes_read += roundbuf_copy_to(&keyboard_rbuf, buffer, size);
+    if (size > 0)
+    {
+      /* Block current process at the beginning of the list */
+      current()->blocking_length = min(size, KEYBOARD_BUF_CAP);
+      update_process_state_rr_first(current(), &input_blocked);
+      sched_next_rr();
+    }
+  } while (size > 0);
   
   return bytes_read;
 }
