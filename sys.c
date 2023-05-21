@@ -489,8 +489,9 @@ int sys_mutex_unlock(int *m) {
   if (!list_empty(&(mutex_array_str->blocked))) {
     struct task_struct* next_t =list_head_to_task_struct(list_first(&(mutex_array_str->blocked))) ;
     update_process_state_rr(next_t, &readyqueue);
+  } else {
+    mutex_array_str->val = 0;
   }
-  mutex_array_str->val = 0;
   return 0;
 }
 
