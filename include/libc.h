@@ -7,7 +7,6 @@
 #define __LIBC_H__
 
 #include <stats.h>
-#include <malloc.h>
 
 extern int errno;
 
@@ -34,7 +33,9 @@ int mutex_lock(int *m);
 int mutex_unlock(int *m);
 
 void* dyn_mem(int num_bytes);
-void* sbrk(int num_bytes);
+
+void* malloc(int bytes);
+void free(void* address);
 
 void itoa(int a, char *b);
 
